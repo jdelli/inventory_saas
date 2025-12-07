@@ -5,6 +5,7 @@ import 'package:inventory_saas/providers/inventory_provider.dart';
 import 'package:inventory_saas/providers/sales_provider.dart';
 import 'package:inventory_saas/providers/supplier_provider.dart';
 import 'package:inventory_saas/providers/hr_provider.dart';
+import 'package:inventory_saas/providers/theme_provider.dart';
 import 'package:inventory_saas/screens/auth/login_screen.dart';
 import 'package:inventory_saas/screens/dashboard/dashboard_screen.dart';
 import 'package:inventory_saas/screens/inventory/inventory_screen.dart';
@@ -32,20 +33,25 @@ class InventorySaaSApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SalesProvider()),
         ChangeNotifierProvider(create: (_) => SupplierProvider()),
         ChangeNotifierProvider(create: (_) => HRProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: 'Inventory SaaS',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        home: Consumer<AuthProvider>(
-          builder: (context, authProvider, child) {
-            return authProvider.isAuthenticated 
-                ? const DashboardScreen() 
-                : const LoginScreen();
-          },
-        ),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'Inventory SaaS',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.themeMode,
+            home: Consumer<AuthProvider>(
+              builder: (context, authProvider, child) {
+                return authProvider.isAuthenticated 
+                    ? const DashboardScreen() 
+                    : const LoginScreen();
+              },
+            ),
+          );
+        },
       ),
     );
   }

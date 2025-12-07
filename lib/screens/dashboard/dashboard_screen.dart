@@ -4,6 +4,7 @@ import 'package:inventory_saas/providers/auth_provider.dart';
 import 'package:inventory_saas/providers/inventory_provider.dart';
 import 'package:inventory_saas/providers/sales_provider.dart';
 import 'package:inventory_saas/providers/supplier_provider.dart';
+import 'package:inventory_saas/providers/theme_provider.dart';
 import 'package:inventory_saas/utils/theme.dart';
 import 'package:inventory_saas/widgets/dashboard/stat_card.dart';
 import 'package:inventory_saas/widgets/dashboard/recent_orders_widget.dart';
@@ -111,6 +112,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 },
                 icon: const Icon(Icons.notifications_outlined),
                 tooltip: 'Notifications',
+              ),
+              const SizedBox(width: 8),
+              // Theme Toggle
+              Consumer<ThemeProvider>(
+                builder: (context, themeProvider, _) {
+                  return IconButton(
+                    onPressed: () {
+                      themeProvider.toggleTheme();
+                    },
+                    icon: Icon(
+                      themeProvider.themeMode == ThemeMode.light 
+                          ? Icons.dark_mode_outlined 
+                          : Icons.light_mode_outlined,
+                    ),
+                    tooltip: themeProvider.themeMode == ThemeMode.light 
+                        ? 'Switch to Dark Mode' 
+                        : 'Switch to Light Mode',
+                  );
+                },
               ),
               const SizedBox(width: 8),
               CircleAvatar(

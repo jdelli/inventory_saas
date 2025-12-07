@@ -484,29 +484,8 @@ class _AddProductModalState extends State<AddProductModal> {
 
       try {
         print('📝 AddProductModal: Creating product object...');
-        final product = Product(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          name: _nameController.text,
-          sku: _skuController.text,
-          barcode: _barcodeController.text,
-          description: _descriptionController.text,
-          category: _selectedCategory,
-          brand: _selectedBrand,
-          costPrice: double.tryParse(_costPriceController.text) ?? 0.0,
-          sellingPrice: double.tryParse(_sellingPriceController.text) ?? 0.0,
-          currentStock: int.tryParse(_currentStockController.text) ?? 0,
-          minStockLevel: int.tryParse(_minStockController.text) ?? 0,
-          maxStockLevel: int.tryParse(_maxStockController.text) ?? 0,
-          unit: _unitController.text.isNotEmpty ? _unitController.text : 'pcs',
-          warehouse: _selectedWarehouse,
-          location: 'A1-B1-C1', // Default location
-          supplierId: _selectedSupplier,
-          imageUrl: _imageUrl,
-          isActive: _isActive,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-
+        final product = await addProduct();
+        
         print('📤 AddProductModal: Calling onProductAdded callback...');
         await widget.onProductAdded(product);
         print('✅ AddProductModal: Product added successfully, closing modal...');
@@ -532,6 +511,124 @@ class _AddProductModalState extends State<AddProductModal> {
         });
       }
     }
+  }
+
+  /// Public function to add a product
+  /// Returns the created Product object
+  /// Throws an exception if validation fails or product creation fails
+  Future<Product> addProduct() async {
+    // Validate form
+    if (!_formKey.currentState!.validate()) {
+      throw Exception('Form validation failed');
+    }
+
+    // Create product object
+    final product = Product(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: _nameController.text.trim(),
+      sku: _skuController.text.trim(),
+      barcode: _barcodeController.text.trim(),
+      description: _descriptionController.text.trim(),
+      category: _selectedCategory,
+      brand: _selectedBrand,
+      costPrice: double.tryParse(_costPriceController.text) ?? 0.0,
+      sellingPrice: double.tryParse(_sellingPriceController.text) ?? 0.0,
+      currentStock: int.tryParse(_currentStockController.text) ?? 0,
+      minStockLevel: int.tryParse(_minStockController.text) ?? 0,
+      maxStockLevel: int.tryParse(_maxStockController.text) ?? 0,
+      unit: _unitController.text.isNotEmpty ? _unitController.text : 'pcs',
+      warehouse: _selectedWarehouse,
+      location: 'A1-B1-C1', // Default location
+      supplierId: _selectedSupplier,
+      imageUrl: _imageUrl,
+      isActive: _isActive,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    // Validate business logic
+    if (product.costPrice > product.sellingPrice) {
+      throw Exception('Cost price cannot be higher than selling price');
+    }
+
+    if (product.currentStock < 0 && !_allowNegativeStock) {
+      throw Exception('Negative stock is not allowed');
+    }
+
+    if (product.minStockLevel > product.maxStockLevel && product.maxStockLevel > 0) {
+      throw Exception('Minimum stock level cannot be higher than maximum stock level');
+    }
+
+    return product;
+  }
+
+  /// Public function to get current form data as a Product object
+  /// This doesn't validate or save, just returns the current form state
+  Product getCurrentFormData() {
+    return Product(
+      id: '', // Empty as this is not saved yet
+      name: _nameController.text.trim(),
+      sku: _skuController.text.trim(),
+      barcode: _barcodeController.text.trim(),
+      description: _descriptionController.text.trim(),
+      category: _selectedCategory,
+      brand: _selectedBrand,
+      costPrice: double.tryParse(_costPriceController.text) ?? 0.0,
+      sellingPrice: double.tryParse(_sellingPriceController.text) ?? 0.0,
+      currentStock: int.tryParse(_currentStockController.text) ?? 0,
+      minStockLevel: int.tryParse(_minStockController.text) ?? 0,
+      maxStockLevel: int.tryParse(_maxStockController.text) ?? 0,
+      unit: _unitController.text.isNotEmpty ? _unitController.text : 'pcs',
+      warehouse: _selectedWarehouse,
+      location: 'A1-B1-C1',
+      supplierId: _selectedSupplier,
+      imageUrl: _imageUrl,
+      isActive: _isActive,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Public function to check if the form has unsaved changes
+  bool hasUnsavedChanges() {
+    return _nameController.text.isNotEmpty ||
+           _skuController.text.isNotEmpty ||
+           _barcodeController.text.isNotEmpty ||
+           _descriptionController.text.isNotEmpty ||
+           _costPriceController.text.isNotEmpty ||
+           _sellingPriceController.text.isNotEmpty ||
+           _currentStockController.text != '0' ||
+           _minStockController.text != '0' ||
+           _maxStockController.text.isNotEmpty ||
+           _unitController.text != 'pcs' ||
+           _weightController.text.isNotEmpty ||
+           _dimensionsController.text.isNotEmpty;
+  }
+
+  /// Public function to reset the form to initial state
+  void resetForm() {
+    setState(() {
+      _nameController.clear();
+      _skuController.clear();
+      _barcodeController.clear();
+      _descriptionController.clear();
+      _costPriceController.clear();
+      _sellingPriceController.clear();
+      _currentStockController.text = '0';
+      _minStockController.text = '0';
+      _maxStockController.clear();
+      _unitController.text = 'pcs';
+      _weightController.clear();
+      _dimensionsController.clear();
+      _selectedCategory = 'Electronics';
+      _selectedBrand = 'Apple';
+      _selectedSupplier = 'Supplier A';
+      _selectedWarehouse = 'Main Warehouse';
+      _imageUrl = '';
+      _isActive = true;
+      _trackStock = true;
+      _allowNegativeStock = false;
+    });
   }
 
   String? _validateRequired(String? value) {

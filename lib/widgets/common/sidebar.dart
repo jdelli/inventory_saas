@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:inventory_saas/utils/theme.dart';
 import 'package:inventory_saas/screens/dashboard/dashboard_screen.dart';
 import 'package:inventory_saas/screens/inventory/inventory_screen.dart';
+import 'package:inventory_saas/screens/sales/sales_screen.dart';
 
 class Sidebar extends StatefulWidget {
   final bool isExpanded;
@@ -338,6 +339,39 @@ class _SidebarState extends State<Sidebar> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => const InventoryScreen(),
+            settings: const RouteSettings(arguments: {'tabIndex': 3}),
+          ),
+        );
+        break;
+      case '/sales':
+      case '/sales/orders':
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const SalesScreen(),
+            settings: const RouteSettings(arguments: {'tabIndex': 0}),
+          ),
+        );
+        break;
+      case '/sales/customers':
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const SalesScreen(),
+            settings: const RouteSettings(arguments: {'tabIndex': 1}),
+          ),
+        );
+        break;
+      case '/sales/invoices':
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const SalesScreen(),
+            settings: const RouteSettings(arguments: {'tabIndex': 2}),
+          ),
+        );
+        break;
+      case '/sales/ecommerce':
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const SalesScreen(),
             settings: const RouteSettings(arguments: {'tabIndex': 3}),
           ),
         );
