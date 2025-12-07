@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_saas/utils/theme.dart';
+import 'package:inventory_saas/widgets/dashboard/stat_card.dart';
 import 'package:inventory_saas/widgets/inventory/add_stock_movement_modal.dart';
 
 // Re-export the StockMovement class and MovementType enum from the modal
@@ -160,58 +161,62 @@ class _StockMovementTabState extends State<StockMovementTab> {
   ];
 
   @override
+  @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Header
-        Container(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Stock Movement',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Stock Movement',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Track all inventory movements and changes',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
+                  ),
+                  Text(
+                    'Track inventory changes',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.textSecondary,
                     ),
-                  ],
+                  ),
+                ],
+              ),
+              ElevatedButton.icon(
+                onPressed: _showAddMovementModal,
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('Add Movement'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
-                             ElevatedButton.icon(
-                 onPressed: _showAddMovementModal,
-                 icon: const Icon(Icons.add),
-                 label: const Text('Add Movement'),
-                 style: ElevatedButton.styleFrom(
-                   backgroundColor: AppTheme.primaryColor,
-                   foregroundColor: Colors.white,
-                 ),
-               ),
             ],
           ),
-        ),
+          
+          const SizedBox(height: 24),
 
-        // Statistics Cards
-        _buildStatisticsCards(),
+          // Statistics Cards
+          _buildStatisticsCards(),
 
-        // Search and Filters
-        _buildSearchAndFilters(),
+          const SizedBox(height: 24),
 
-        // Movements Table
-        Expanded(
-          child: _buildMovementsTable(),
-        ),
-      ],
+          // Search and Filters
+          _buildSearchAndFilters(),
+
+          const SizedBox(height: 24),
+
+          // Movements Table
+          _buildMovementsTable(),
+        ],
+      ),
     );
   }
 
@@ -227,116 +232,79 @@ class _StockMovementTabState extends State<StockMovementTab> {
         .where((m) => m.movementType == MovementType.transfer)
         .length;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildStatCard(
-              'Total Movements',
-              filteredMovements.length.toString(),
-              Icons.swap_horiz,
-              AppTheme.primaryColor,
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 800;
+        final cards = [
+          StatCard(
+            title: 'Total Movements',
+            value: filteredMovements.length.toString(),
+            icon: Icons.swap_horiz,
+            color: AppTheme.primaryColor,
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildStatCard(
-              'Stock In',
-              totalIn.toString(),
-              Icons.arrow_downward,
-              AppTheme.successColor,
-            ),
+          StatCard(
+            title: 'Stock In',
+            value: totalIn.toString(),
+            icon: Icons.arrow_downward,
+            color: AppTheme.successColor,
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildStatCard(
-              'Stock Out',
-              totalOut.toString(),
-              Icons.arrow_upward,
-              AppTheme.errorColor,
-            ),
+          StatCard(
+            title: 'Stock Out',
+            value: totalOut.toString(),
+            icon: Icons.arrow_upward,
+            color: AppTheme.errorColor,
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildStatCard(
-              'Transfers',
-              totalTransfers.toString(),
-              Icons.swap_horiz,
-              AppTheme.infoColor,
-            ),
+          StatCard(
+            title: 'Transfers',
+            value: totalTransfers.toString(),
+            icon: Icons.sync_alt,
+            color: AppTheme.infoColor,
           ),
-        ],
-      ),
-    );
-  }
+        ];
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, color: color, size: 24),
+        if (!isWide) {
+          return Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: cards.map((card) => SizedBox(
+              width: (constraints.maxWidth - 12) / 2, 
+              child: card,
+            )).toList(),
+          );
+        }
+
+        return Row(
+          children: cards.map((card) => Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: card,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          )).toList()..last = Expanded(child: cards.last),
+        );
+      },
     );
   }
 
   Widget _buildSearchAndFilters() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200),
-        ),
-      ),
-      child: Column(
-        children: [
-          // Search Bar
-          TextField(
+    return Row(
+      children: [
+        // Search Bar
+        Expanded(
+          flex: 2,
+          child: TextField(
             onChanged: (value) {
               setState(() {
                 _searchQuery = value;
               });
             },
+            style: const TextStyle(fontSize: 13),
             decoration: InputDecoration(
-              hintText: 'Search movements by product name, SKU, or reference...',
-              prefixIcon: const Icon(Icons.search),
+              hintText: 'Search movements...',
+              prefixIcon: const Icon(Icons.search, size: 18),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.clear),
+                      icon: const Icon(Icons.clear, size: 16),
                       onPressed: () {
                         setState(() {
                           _searchQuery = '';
@@ -349,277 +317,256 @@ class _StockMovementTabState extends State<StockMovementTab> {
               ),
             ),
           ),
-          
-          const SizedBox(height: 16),
-          
-          // Filters
-          Row(
-            children: [
-              Expanded(
-                child: DropdownButtonFormField<String>(
-                  value: _selectedMovementType,
-                  decoration: const InputDecoration(
-                    labelText: 'Movement Type',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: _movementTypes.map((type) {
-                    return DropdownMenuItem(
-                      value: type,
-                      child: Text(type),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedMovementType = value!;
-                    });
-                  },
-                ),
+        ),
+        
+        const SizedBox(width: 12),
+        
+        // Filters
+        Expanded(
+          child: DropdownButtonFormField<String>(
+            value: _selectedMovementType,
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
+            decoration: InputDecoration(
+              labelText: 'Type',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: DropdownButtonFormField<String>(
-                  value: _selectedWarehouse,
-                  decoration: const InputDecoration(
-                    labelText: 'Warehouse',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: _warehouses.map((warehouse) {
-                    return DropdownMenuItem(
-                      value: warehouse,
-                      child: Text(warehouse),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedWarehouse = value!;
-                    });
-                  },
-                ),
-              ),
-            ],
+            ),
+            items: _movementTypes.map((type) {
+              return DropdownMenuItem(
+                value: type,
+                child: Text(type),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedMovementType = value!;
+              });
+            },
           ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: DropdownButtonFormField<String>(
+            value: _selectedWarehouse,
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
+            decoration: InputDecoration(
+              labelText: 'Warehouse',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            items: _warehouses.map((warehouse) {
+              return DropdownMenuItem(
+                value: warehouse,
+                child: Text(warehouse),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedWarehouse = value!;
+              });
+            },
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildMovementsTable() {
     final filteredMovements = _getFilteredMovements();
     
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      child: SingleChildScrollView(
-        child: Table(
-          columnWidths: const {
-            0: FlexColumnWidth(1.2), // Date
-            1: FlexColumnWidth(2.0), // Product
-            2: FlexColumnWidth(1.0), // Type
-            3: FlexColumnWidth(0.8), // Quantity
-            4: FlexColumnWidth(1.0), // Stock
-            5: FlexColumnWidth(1.5), // Reference
-            6: FlexColumnWidth(1.2), // User
-            7: FlexColumnWidth(0.8), // Actions
-          },
-          border: TableBorder.all(
-            color: Colors.grey.withOpacity(0.2),
-            width: 1,
+    if (filteredMovements.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          child: Column(
+            children: [
+              Icon(Icons.history, size: 48, color: AppTheme.textSecondary),
+              const SizedBox(height: 16),
+              const Text('No stock movements found'),
+            ],
           ),
-          children: [
-            // Header Row
-            TableRow(
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-              ),
-              children: [
-                _buildHeaderCell('Date'),
-                _buildHeaderCell('Product'),
-                _buildHeaderCell('Type'),
-                _buildHeaderCell('Quantity'),
-                _buildHeaderCell('Stock'),
-                _buildHeaderCell('Reference'),
-                _buildHeaderCell('User'),
-                _buildHeaderCell('Actions'),
-              ],
-            ),
-            // Data Rows
-            ...filteredMovements.map((movement) => TableRow(
-              children: [
-                _buildDateCell(movement),
-                _buildProductCell(movement),
-                _buildTypeCell(movement),
-                _buildQuantityCell(movement),
-                _buildStockCell(movement),
-                _buildReferenceCell(movement),
-                _buildCell(movement.userName),
-                _buildActionsCell(movement),
-              ],
-            )).toList(),
+        ),
+      );
+    }
+
+    return Card(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          headingRowHeight: 48,
+          dataRowMinHeight: 48,
+          dataRowMaxHeight: 56,
+          columnSpacing: 24,
+          horizontalMargin: 16,
+          columns: [
+            DataColumn(label: Text('DATE', style: _headerStyle())),
+            DataColumn(label: Text('PRODUCT', style: _headerStyle())),
+            DataColumn(label: Text('TYPE', style: _headerStyle())),
+            DataColumn(label: Text('QTY', style: _headerStyle())),
+            DataColumn(label: Text('STOCK', style: _headerStyle())),
+            DataColumn(label: Text('REF', style: _headerStyle())),
+            DataColumn(label: Text('USER', style: _headerStyle())),
+            DataColumn(label: Text('ACTIONS', style: _headerStyle())),
           ],
+          rows: filteredMovements.map((movement) => DataRow(
+            cells: [
+              DataCell(_buildDateCell(movement)),
+              DataCell(_buildProductCell(movement)),
+              DataCell(_buildTypeCell(movement)),
+              DataCell(_buildQuantityCell(movement)),
+              DataCell(_buildStockCell(movement)),
+              DataCell(_buildReferenceCell(movement)),
+              DataCell(Text(movement.userName, style: const TextStyle(fontSize: 13))),
+              DataCell(_buildActionsCell(movement)),
+            ],
+          )).toList(),
         ),
       ),
     );
   }
 
-  Widget _buildHeaderCell(String text) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCell(String text) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      child: Text(text),
+  TextStyle _headerStyle() {
+    return TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.w700,
+      color: AppTheme.textSecondary,
     );
   }
 
   Widget _buildDateCell(StockMovement movement) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _formatDate(movement.date),
-            style: const TextStyle(fontWeight: FontWeight.w600),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _formatDate(movement.date),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+        ),
+        Text(
+          _formatTime(movement.date),
+          style: TextStyle(
+            color: AppTheme.textSecondary,
+            fontSize: 11,
           ),
-          Text(
-            _formatTime(movement.date),
-            style: TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildProductCell(StockMovement movement) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            movement.productName,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          movement.productName,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+        ),
+        Text(
+          movement.sku,
+          style: TextStyle(
+            color: AppTheme.textSecondary,
+            fontSize: 11,
           ),
-          Text(
-            movement.sku,
-            style: TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildTypeCell(StockMovement movement) {
     return Container(
-      padding: const EdgeInsets.all(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: _getMovementTypeColor(movement.movementType).withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              _getMovementTypeIcon(movement.movementType),
-              size: 16,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: _getMovementTypeColor(movement.movementType).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _getMovementTypeColor(movement.movementType).withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            _getMovementTypeIcon(movement.movementType),
+            size: 14,
+            color: _getMovementTypeColor(movement.movementType),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            _getMovementTypeText(movement.movementType),
+            style: TextStyle(
               color: _getMovementTypeColor(movement.movementType),
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(width: 4),
-            Text(
-              _getMovementTypeText(movement.movementType),
-              style: TextStyle(
-                color: _getMovementTypeColor(movement.movementType),
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildQuantityCell(StockMovement movement) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      child: Text(
-        '${movement.quantity > 0 ? '+' : ''}${movement.quantity}',
-        style: TextStyle(
-          color: movement.quantity > 0 ? AppTheme.successColor : AppTheme.errorColor,
-          fontWeight: FontWeight.w600,
-        ),
+    return Text(
+      '${movement.quantity > 0 ? '+' : ''}${movement.quantity}',
+      style: TextStyle(
+        color: movement.quantity > 0 ? AppTheme.successColor : AppTheme.errorColor,
+        fontWeight: FontWeight.w600,
+        fontSize: 13,
       ),
     );
   }
 
   Widget _buildStockCell(StockMovement movement) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      child: Text('${movement.previousStock} → ${movement.newStock}'),
+    return Text(
+      '${movement.previousStock} → ${movement.newStock}',
+      style: const TextStyle(fontSize: 13),
     );
   }
 
   Widget _buildReferenceCell(StockMovement movement) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            movement.reference,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          movement.reference,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+        ),
+        Text(
+          movement.referenceType,
+          style: TextStyle(
+            color: AppTheme.textSecondary,
+            fontSize: 11,
           ),
-          Text(
-            movement.referenceType,
-            style: TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildActionsCell(StockMovement movement) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.visibility, size: 16),
-            onPressed: () {
-              // TODO: View movement details
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit, size: 16),
-            onPressed: () {
-              // TODO: Edit movement
-            },
-          ),
-        ],
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.visibility_outlined, size: 16),
+          onPressed: () {
+            // TODO: View movement details
+          },
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+        const SizedBox(width: 12),
+        IconButton(
+          icon: const Icon(Icons.edit_outlined, size: 16),
+          onPressed: () {
+            // TODO: Edit movement
+          },
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+      ],
     );
   }
 

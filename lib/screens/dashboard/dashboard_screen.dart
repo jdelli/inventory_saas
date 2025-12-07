@@ -54,6 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _isSidebarExpanded = !_isSidebarExpanded;
               });
             },
+            currentRoute: '/dashboard',
           ),
           
           // Main Content
@@ -150,158 +151,249 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildContent() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Welcome Message
-          Text(
-            'Welcome back!',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Here\'s what\'s happening with your inventory today.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Statistics Cards
-          _buildStatisticsCards(),
-          const SizedBox(height: 32),
-
-          // Charts and Recent Activity
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 900;
+        
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20), // Compact padding
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Sales Chart
-              Expanded(
-                flex: 2,
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Sales Overview',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        const SizedBox(
-                          height: 300,
-                          child: SalesChartWidget(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 24),
-              
-              // Recent Orders
-              Expanded(
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Recent Orders',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        const SizedBox(
-                          height: 300,
-                          child: RecentOrdersWidget(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-
-          // Low Stock Alerts
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
+              // Welcome Message
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Low Stock Alerts',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    'Welcome back!',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 24,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const LowStockWidget(),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Here/s what\'s happening with your inventory today.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
                 ],
               ),
-            ),
+              const SizedBox(height: 24),
+
+              // Statistics Cards
+              _buildStatisticsCards(isWide),
+              const SizedBox(height: 16),
+
+              // Charts and Recent Activity
+              if (isWide)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Sales Chart
+                    Expanded(
+                      flex: 3,
+                      child: _buildSalesChartCard(),
+                    ),
+                    const SizedBox(width: 16),
+                    // Recent Orders
+                    Expanded(
+                      flex: 2,
+                      child: _buildRecentOrdersCard(),
+                    ),
+                  ],
+                )
+              else
+                Column(
+                  children: [
+                    _buildSalesChartCard(),
+                    const SizedBox(height: 16),
+                    _buildRecentOrdersCard(),
+                  ],
+                ),
+                
+              const SizedBox(height: 16),
+
+              // Low Stock Alerts
+              _buildLowStockCard(),
+            ],
           ),
-        ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSalesChartCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Sales Overview',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                // Optional: Time range filter dropdown could go here
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'This Week',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.keyboard_arrow_down, size: 16),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            const SizedBox(
+              height: 300,
+              child: SalesChartWidget(),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatisticsCards() {
+  Widget _buildRecentOrdersCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Recent Orders',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text('View All'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const SizedBox(
+              height: 300,
+              child: RecentOrdersWidget(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLowStockCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: AppTheme.warningColor, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Low Stock Alerts',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const LowStockWidget(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatisticsCards(bool isWide) {
     return Consumer3<InventoryProvider, SalesProvider, SupplierProvider>(
       builder: (context, inventoryProvider, salesProvider, supplierProvider, child) {
-        return GridView.count(
-          crossAxisCount: 4,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 1.5,
-          children: [
-                         StatCard(
-               title: 'Total Products',
-               value: inventoryProvider.totalProducts.toString(),
-               icon: Icons.inventory_2,
-               color: AppTheme.primaryColor,
-               trend: '+12%',
-               trendDirection: TrendDirection.up,
-             ),
-             StatCard(
-               title: 'Total Sales',
-               value: '\$${salesProvider.totalSales.toStringAsFixed(0)}',
-               icon: Icons.trending_up,
-               color: AppTheme.successColor,
-               trend: '+8.5%',
-               trendDirection: TrendDirection.up,
-             ),
-             StatCard(
-               title: 'Low Stock Items',
-               value: inventoryProvider.lowStockProducts.length.toString(),
-               icon: Icons.warning,
-               color: AppTheme.warningColor,
-               trend: '-3%',
-               trendDirection: TrendDirection.down,
-             ),
-             StatCard(
-               title: 'Active Suppliers',
-               value: supplierProvider.activeSuppliers.length.toString(),
-               icon: Icons.business,
-               color: AppTheme.infoColor,
-               trend: '+2%',
-               trendDirection: TrendDirection.up,
-             ),
-          ],
+        final cards = [
+           StatCard(
+             title: 'Total Products',
+             value: inventoryProvider.totalProducts.toString(),
+             icon: Icons.inventory_2_outlined,
+             color: AppTheme.primaryColor,
+             trend: '+12%',
+             trendDirection: TrendDirection.up,
+           ),
+           StatCard(
+             title: 'Total Sales',
+             value: '\$${salesProvider.totalSales.toStringAsFixed(0)}',
+             icon: Icons.trending_up,
+             color: AppTheme.successColor,
+             trend: '+8.5%',
+             trendDirection: TrendDirection.up,
+           ),
+           StatCard(
+             title: 'Low Stock',
+             value: inventoryProvider.lowStockProducts.length.toString(),
+             icon: Icons.warning_amber_rounded,
+             color: AppTheme.warningColor,
+             trend: '-3%',
+             trendDirection: TrendDirection.down,
+           ),
+           StatCard(
+             title: 'Suppliers',
+             value: supplierProvider.activeSuppliers.length.toString(),
+             icon: Icons.business_outlined,
+             color: AppTheme.infoColor,
+             trend: '+2%',
+             trendDirection: TrendDirection.up,
+           ),
+        ];
+
+        if (!isWide) {
+          return Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            children: cards.map((card) => SizedBox(
+              width: (MediaQuery.of(context).size.width - 40 - 16) / 2, // 2 columns with padding calc
+              child: card,
+            )).toList(),
+          );
+        }
+
+        return Row(
+          children: cards.map((card) => Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: card,
+            ),
+          )).toList()..last = Expanded(child: cards.last), // Remove padding from last item
         );
       },
     );

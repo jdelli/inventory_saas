@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:inventory_saas/providers/sales_provider.dart';
 import 'package:inventory_saas/models/sales_order.dart';
 import 'package:inventory_saas/utils/theme.dart';
+import 'package:inventory_saas/widgets/dashboard/stat_card.dart';
 
 class OrdersTab extends StatefulWidget {
   const OrdersTab({super.key});
@@ -54,85 +55,78 @@ class _OrdersTabState extends State<OrdersTab> {
   }
 
   Widget _buildHeader(SalesProvider salesProvider) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Sales Orders',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Manage and track all your sales orders',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        
-        // Quick Stats
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildStatCard(
-              'Total Orders',
-              salesProvider.salesOrders.length.toString(),
-              Icons.receipt,
-              AppTheme.primaryColor,
-            ),
-            const SizedBox(width: 16),
-            _buildStatCard(
-              'Total Sales',
-              '\$${salesProvider.totalSales.toStringAsFixed(0)}',
-              Icons.trending_up,
-              AppTheme.successColor,
-            ),
-            const SizedBox(width: 16),
-            _buildStatCard(
-              'Outstanding',
-              '\$${salesProvider.totalOutstanding.toStringAsFixed(0)}',
-              Icons.pending,
-              AppTheme.warningColor,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Sales Orders',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  'Manage and track all your sales orders',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-      ],
-    );
-  }
+        const SizedBox(height: 16),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth > 800;
+            final cards = [
+              StatCard(
+                title: 'Total Orders',
+                value: salesProvider.salesOrders.length.toString(),
+                icon: Icons.receipt_long_outlined,
+                color: AppTheme.primaryColor,
+              ),
+              StatCard(
+                 title: 'Total Sales',
+                 value: '\$${salesProvider.totalSales.toStringAsFixed(0)}',
+                 icon: Icons.trending_up,
+                 color: AppTheme.successColor,
+               ),
+               StatCard(
+                 title: 'Outstanding',
+                 value: '\$${salesProvider.totalOutstanding.toStringAsFixed(0)}',
+                 icon: Icons.pending_outlined,
+                 color: AppTheme.warningColor,
+               ),
+            ];
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: color,
-            ),
-          ),
-        ],
-      ),
+            if (!isWide) {
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: cards.map((card) => SizedBox(
+                  width: (constraints.maxWidth - 12) / 2, 
+                  child: card,
+                )).toList(),
+              );
+            }
+
+            return Row(
+              children: cards.map((card) => Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: card,
+                ),
+              )).toList()..last = Expanded(child: cards.last),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -144,9 +138,11 @@ class _OrdersTabState extends State<OrdersTab> {
           flex: 2,
           child: TextField(
             controller: _searchController,
+            style: const TextStyle(fontSize: 13),
             decoration: InputDecoration(
-              hintText: 'Search orders, customers, or tracking numbers...',
-              prefixIcon: const Icon(Icons.search),
+              hintText: 'Search orders...',
+              prefixIcon: const Icon(Icons.search, size: 18),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
                       onPressed: () {
@@ -155,7 +151,7 @@ class _OrdersTabState extends State<OrdersTab> {
                           _searchQuery = '';
                         });
                       },
-                      icon: const Icon(Icons.clear),
+                      icon: const Icon(Icons.clear, size: 16),
                     )
                   : null,
               border: OutlineInputBorder(
@@ -170,14 +166,16 @@ class _OrdersTabState extends State<OrdersTab> {
           ),
         ),
         
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         
         // Status Filter
         Expanded(
           child: DropdownButtonFormField<SalesOrderStatus?>(
             value: _statusFilter,
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
             decoration: InputDecoration(
-              labelText: 'Order Status',
+              labelText: 'Status',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -185,7 +183,7 @@ class _OrdersTabState extends State<OrdersTab> {
             items: [
               const DropdownMenuItem(
                 value: null,
-                child: Text('All Statuses'),
+                child: Text('All'),
               ),
               ...SalesOrderStatus.values.map((status) => DropdownMenuItem(
                 value: status,
@@ -200,14 +198,16 @@ class _OrdersTabState extends State<OrdersTab> {
           ),
         ),
         
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         
         // Payment Filter
         Expanded(
           child: DropdownButtonFormField<PaymentStatus?>(
             value: _paymentFilter,
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
             decoration: InputDecoration(
-              labelText: 'Payment Status',
+              labelText: 'Payment',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -215,7 +215,7 @@ class _OrdersTabState extends State<OrdersTab> {
             items: [
               const DropdownMenuItem(
                 value: null,
-                child: Text('All Payments'),
+                child: Text('All'),
               ),
               ...PaymentStatus.values.map((status) => DropdownMenuItem(
                 value: status,
@@ -241,20 +241,13 @@ class _OrdersTabState extends State<OrdersTab> {
           children: [
             Icon(
               Icons.receipt_outlined,
-              size: 64,
+              size: 48,
               color: AppTheme.textSecondary,
             ),
             const SizedBox(height: 16),
             Text(
               'No orders found',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Try adjusting your filters or create a new order',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: AppTheme.textSecondary,
               ),
             ),
@@ -267,18 +260,31 @@ class _OrdersTabState extends State<OrdersTab> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
-          columns: const [
-            DataColumn(label: Text('Order #')),
-            DataColumn(label: Text('Customer')),
-            DataColumn(label: Text('Status')),
-            DataColumn(label: Text('Payment')),
-            DataColumn(label: Text('Total')),
-            DataColumn(label: Text('Date')),
-            DataColumn(label: Text('Actions')),
+          headingRowHeight: 48,
+          dataRowMinHeight: 48,
+          dataRowMaxHeight: 56,
+          columnSpacing: 24,
+          horizontalMargin: 16,
+          columns: [
+            DataColumn(label: Text('ORDER #', style: _headerStyle())),
+            DataColumn(label: Text('CUSTOMER', style: _headerStyle())),
+            DataColumn(label: Text('STATUS', style: _headerStyle())),
+            DataColumn(label: Text('PAYMENT', style: _headerStyle())),
+            DataColumn(label: Text('TOTAL', style: _headerStyle())),
+            DataColumn(label: Text('DATE', style: _headerStyle())),
+            DataColumn(label: Text('ACTIONS', style: _headerStyle())),
           ],
           rows: orders.map((order) => _buildOrderRow(order, salesProvider)).toList(),
         ),
       ),
+    );
+  }
+
+  TextStyle _headerStyle() {
+    return TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.w700,
+      color: AppTheme.textSecondary,
     );
   }
 
@@ -288,7 +294,7 @@ class _OrdersTabState extends State<OrdersTab> {
         DataCell(
           Text(
             order.orderNumber,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
           ),
         ),
         DataCell(
@@ -298,14 +304,16 @@ class _OrdersTabState extends State<OrdersTab> {
             children: [
               Text(
                 order.customerName,
-                style: const TextStyle(fontWeight: FontWeight.w500),
+                style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
               ),
-              Text(
-                order.customerEmail,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textSecondary,
+              if (order.customerEmail.isNotEmpty)
+                Text(
+                  order.customerEmail,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppTheme.textSecondary,
+                    fontSize: 11,
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -322,13 +330,14 @@ class _OrdersTabState extends State<OrdersTab> {
             children: [
               Text(
                 '\$${order.totalAmount.toStringAsFixed(2)}',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
               ),
               if (order.outstandingAmount > 0)
                 Text(
-                  'Outstanding: \$${order.outstandingAmount.toStringAsFixed(2)}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  'Due: \$${order.outstandingAmount.toStringAsFixed(2)}',
+                  style: TextStyle(
                     color: AppTheme.warningColor,
+                    fontSize: 10,
                   ),
                 ),
             ],
@@ -341,13 +350,14 @@ class _OrdersTabState extends State<OrdersTab> {
             children: [
               Text(
                 _formatDate(order.orderDate),
-                style: const TextStyle(fontWeight: FontWeight.w500),
+                style: const TextStyle(fontSize: 12),
               ),
               if (order.shipDate != null)
                 Text(
-                  'Shipped: ${_formatDate(order.shipDate!)}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  'Ship: ${_formatDate(order.shipDate!)}',
+                  style: TextStyle(
                     color: AppTheme.textSecondary,
+                    fontSize: 10,
                   ),
                 ),
             ],
@@ -359,18 +369,26 @@ class _OrdersTabState extends State<OrdersTab> {
             children: [
               IconButton(
                 onPressed: () => _viewOrderDetails(order),
-                icon: const Icon(Icons.visibility, size: 18),
-                tooltip: 'View Details',
+                icon: const Icon(Icons.visibility_outlined, size: 16),
+                tooltip: 'View',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
+              const SizedBox(width: 12),
               IconButton(
                 onPressed: () => _editOrder(order),
-                icon: const Icon(Icons.edit, size: 18),
-                tooltip: 'Edit Order',
+                icon: const Icon(Icons.edit_outlined, size: 16),
+                tooltip: 'Edit',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
+              const SizedBox(width: 12),
               IconButton(
                 onPressed: () => _showOrderActions(order, salesProvider),
-                icon: const Icon(Icons.more_vert, size: 18),
-                tooltip: 'More Actions',
+                icon: const Icon(Icons.more_horiz, size: 16),
+                tooltip: 'More',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),

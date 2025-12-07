@@ -37,6 +37,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
   void _handleRouteArguments() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       if (args != null && args.containsKey('tabIndex')) {
         final tabIndex = args['tabIndex'] as int;
@@ -83,6 +84,12 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                 _isSidebarExpanded = !_isSidebarExpanded;
               });
             },
+            currentRoute: const [
+              '/inventory/products',
+              '/inventory/categories',
+              '/inventory/movement',
+              '/inventory/scanner'
+            ][_selectedTabIndex],
           ),
           
           // Main Content
@@ -106,66 +113,55 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
   Widget _buildAppBar() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1))),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.inventory_2,
+          const Icon(
+            Icons.inventory_2_outlined,
             color: AppTheme.primaryColor,
-            size: 24,
+            size: 20,
           ),
           const SizedBox(width: 12),
           Text(
             'Inventory Management',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
           ),
           const Spacer(),
           // Quick Actions
           Row(
             children: [
+              OutlinedButton.icon(
+                onPressed: () {},
+                icon: const Icon(Icons.file_upload_outlined, size: 18),
+                label: const Text('Import'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () {},
+                icon: const Icon(Icons.file_download_outlined, size: 18),
+                label: const Text('Export'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+              ),
+              const SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: _showAddProductModal,
-                icon: const Icon(Icons.add),
+                icon: const Icon(Icons.add, size: 18),
                 label: const Text('Add Product'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,
                   foregroundColor: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 12),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Import products
-                },
-                icon: const Icon(Icons.upload),
-                label: const Text('Import'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.infoColor,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 12),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Export products
-                },
-                icon: const Icon(Icons.download),
-                label: const Text('Export'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.successColor,
-                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
               ),
             ],
@@ -180,31 +176,36 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
       children: [
         // Tab Bar
         Container(
-          color: Theme.of(context).cardColor,
-          child: TabBar(
-            controller: _tabController,
-            labelColor: AppTheme.primaryColor,
-            unselectedLabelColor: AppTheme.textSecondary,
-            indicatorColor: AppTheme.primaryColor,
-            indicatorWeight: 3,
-            tabs: const [
-              Tab(
-                icon: Icon(Icons.category),
-                text: 'Products',
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1))),
+          ),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              tabBarTheme: const TabBarThemeData(
+                labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Poppins', fontSize: 14),
+                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontFamily: 'Poppins', fontSize: 14),
+                labelColor: AppTheme.primaryColor,
+                unselectedLabelColor: AppTheme.textSecondary,
+                indicator: const UnderlineTabIndicator(
+                  borderSide: BorderSide(color: AppTheme.primaryColor, width: 2),
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
               ),
-              Tab(
-                icon: Icon(Icons.folder),
-                text: 'Categories',
-              ),
-              Tab(
-                icon: Icon(Icons.swap_horiz),
-                text: 'Stock Movement',
-              ),
-              Tab(
-                icon: Icon(Icons.qr_code_scanner),
-                text: 'Barcode Scanner',
-              ),
-            ],
+            ),
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              tabs: const [
+                Tab(text: 'All Products'),
+                Tab(text: 'Categories'),
+                Tab(text: 'Stock Movement'),
+                Tab(text: 'Scanner'),
+              ],
+            ),
           ),
         ),
         

@@ -8,11 +8,13 @@ import 'package:inventory_saas/screens/pos/pos_screen.dart';
 class Sidebar extends StatefulWidget {
   final bool isExpanded;
   final VoidCallback? onToggle;
+  final String currentRoute;
 
   const Sidebar({
     super.key,
     required this.isExpanded,
     this.onToggle,
+    required this.currentRoute,
   });
 
   @override
@@ -109,6 +111,48 @@ class _SidebarState extends State<Sidebar> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _updateSelection();
+  }
+
+  @override
+  void didUpdateWidget(Sidebar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentRoute != widget.currentRoute) {
+      _updateSelection();
+    }
+  }
+
+  void _updateSelection() {
+    for (int i = 0; i < _menuItems.length; i++) {
+      final item = _menuItems[i];
+      if (item.route == widget.currentRoute) {
+        _selectedIndex = i;
+        return;
+      }
+      for (int j = 0; j < item.children.length; j++) {
+        if (item.children[j].route == widget.currentRoute) {
+          _selectedIndex = i;
+          _expandedItems[i] = true;
+          return;
+        }
+      }
+    }
+    // Fallback: Check for partial matches or default
+    // If route is '/inventory', match index 2
+    for (int i = 0; i < _menuItems.length; i++) {
+       if (widget.currentRoute.startsWith(_menuItems[i].route)) {
+         _selectedIndex = i;
+         if (_menuItems[i].children.isNotEmpty) {
+           _expandedItems[i] = true;
+         }
+         return;
+       }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       width: widget.isExpanded ? 280 : 70,
@@ -193,112 +237,151 @@ class _SidebarState extends State<Sidebar> {
     final isSelected = _selectedIndex == index;
     final hasChildren = item.children.isNotEmpty;
     final isExpanded = _expandedItems[index] ?? false;
+    final isSidebarExpanded = widget.isExpanded;
 
     return Column(
       children: [
         // Main Menu Item
-        InkWell(
-          onTap: () {
-            setState(() {
-              if (hasChildren) {
-                _expandedItems[index] = !isExpanded;
-              } else {
-                _selectedIndex = index;
-                _navigateToRoute(item.route);
-              }
-            });
-          },
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            margin: const EdgeInsets.symmetric(vertical: 2),
-            decoration: BoxDecoration(
-              color: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : Colors.transparent,
+        Container(
+          height: 44, // Compact height
+          margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  if (hasChildren) {
+                    if (isSidebarExpanded) {
+                       _expandedItems[index] = !isExpanded;
+                    } else {
+                       // If collapsed, clicking parent with children might need different behavior (e.g. show popup)
+                       // For now, toggle expansion which will only be visible if Sidebar is expanded
+                       widget.onToggle?.call(); // Auto-expand sidebar
+                       _expandedItems[index] = true;
+                    }
+                  } else {
+                    _selectedIndex = index;
+                    _navigateToRoute(item.route);
+                  }
+                });
+              },
               borderRadius: BorderRadius.circular(8),
-              border: isSelected
-                  ? Border.all(color: AppTheme.primaryColor.withOpacity(0.3))
-                  : null,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  item.icon,
-                  size: 20,
-                  color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  color: isSelected && !hasChildren 
+                      ? AppTheme.primaryColor 
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                if (widget.isExpanded) ...[
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      item.title,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                        color: isSelected ? AppTheme.primaryColor : AppTheme.textPrimary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (hasChildren)
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  children: [
                     Icon(
-                      isExpanded ? Icons.expand_less : Icons.expand_more,
-                      size: 16,
-                      color: AppTheme.textSecondary,
+                      item.icon,
+                      size: 20,
+                      color: isSelected && !hasChildren 
+                          ? Colors.white 
+                          : isSelected 
+                              ? AppTheme.primaryColor 
+                              : AppTheme.textSecondary,
                     ),
-                ],
-              ],
+                    if (isSidebarExpanded) ...[
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          item.title,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                            color: isSelected && !hasChildren
+                                ? Colors.white
+                                : isSelected
+                                    ? AppTheme.primaryColor
+                                    : AppTheme.textPrimary,
+                            letterSpacing: -0.2,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (hasChildren)
+                        Icon(
+                          isExpanded ? Icons.expand_less : Icons.expand_more,
+                          size: 16,
+                          color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
+                        ),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
         ),
         
         // Submenu Items (if expanded)
-        if (hasChildren && isExpanded && widget.isExpanded)
-          ...item.children.asMap().entries.map((entry) {
-            final childIndex = entry.key;
-            final child = entry.value;
-            return _buildSubMenuItem(child, index, childIndex);
-          }),
+        if (hasChildren && isExpanded && isSidebarExpanded)
+          Container(
+            margin: const EdgeInsets.only(bottom: 4),
+            child: Column(
+              children: item.children.asMap().entries.map((entry) {
+                final childIndex = entry.key;
+                final child = entry.value;
+                return _buildSubMenuItem(child, index, childIndex);
+              }).toList(),
+            ),
+          ),
       ],
     );
   }
 
   Widget _buildSubMenuItem(SidebarItem item, int parentIndex, int childIndex) {
-    final isSelected = _selectedIndex == parentIndex && childIndex == 0; // Simple selection logic
+    final isActive = item.route == widget.currentRoute;
     
     return Container(
-      margin: const EdgeInsets.only(left: 20, top: 2),
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            _selectedIndex = parentIndex;
-          });
-          _navigateToRoute(item.route);
-        },
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? AppTheme.primaryColor.withOpacity(0.05) : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
+      height: 36,
+      margin: const EdgeInsets.only(left: 16, right: 8, top: 1),
+      decoration: BoxDecoration(
+        border: Border(
+           left: BorderSide(
+             color: isActive ? AppTheme.primaryColor : AppTheme.textSecondary.withOpacity(0.2),
+             width: isActive ? 2 : 1,
+           ),
+        ),
+      ),
+      child: Material(
+        color: isActive ? AppTheme.primaryColor.withOpacity(0.1) : Colors.transparent,
+        borderRadius: const BorderRadius.only(
+          topRight: Radius.circular(6),
+          bottomRight: Radius.circular(6),
+        ),
+        child: InkWell(
+          onTap: () {
+            setState(() {
+              _selectedIndex = parentIndex;
+            });
+            _navigateToRoute(item.route);
+          },
+          borderRadius: const BorderRadius.only(
+            topRight: Radius.circular(6),
+            bottomRight: Radius.circular(6),
           ),
-          child: Row(
-            children: [
-              Icon(
-                item.icon,
-                size: 16,
-                color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  item.title,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
-                    fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16, right: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    item.title,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: isActive ? AppTheme.primaryColor : null,
+                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                      fontSize: 13,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

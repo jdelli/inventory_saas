@@ -195,128 +195,132 @@ class _POSProductGridState extends State<POSProductGrid> {
               posProvider.addToCart(product);
               _showAddedFeedback(product.name);
             },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isOutOfStock
                 ? AppTheme.errorColor.withOpacity(0.3)
-                : Colors.transparent,
+                : Theme.of(context).dividerColor.withOpacity(0.1),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: Stack(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Product Image/Icon
-                  Expanded(
-                    flex: 3,
-                    child: Center(
-                      child: Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: product.imageUrl.isNotEmpty
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  product.imageUrl,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => _buildPlaceholderIcon(),
-                                ),
-                              )
-                            : _buildPlaceholderIcon(),
-                      ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Product Image/Icon area
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.05),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                     ),
+                    child: product.imageUrl.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                            child: Image.network(
+                              product.imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _buildPlaceholderIcon(),
+                            ),
+                          )
+                        : _buildPlaceholderIcon(),
                   ),
-                  const SizedBox(height: 8),
-                  
-                  // Product Name
-                  Expanded(
-                    flex: 2,
+                ),
+                
+                // Content
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10), // Reduced padding
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           product.name,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w600,
+                            height: 1.2,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const Spacer(),
-                        // Price
-                        Text(
-                          '₱${product.sellingPrice.toStringAsFixed(2)}',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryColor,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '₱${product.sellingPrice.toStringAsFixed(2)}',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.primaryColor,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             
-            // Stock Indicator
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isOutOfStock
-                      ? AppTheme.errorColor
-                      : isLowStock
-                          ? AppTheme.warningColor
-                          : AppTheme.successColor,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  isOutOfStock
-                      ? 'Out'
-                      : '${product.currentStock}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+            // Stock Indicator (Mini badge)
+            if (!isOutOfStock)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isLowStock ? AppTheme.warningColor : Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: isLowStock ? Colors.transparent : Colors.grey.withOpacity(0.3),
+                    ),
+                    boxShadow: [
+                      if (!isLowStock)
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 2,
+                        )
+                    ],
+                  ),
+                  child: Text(
+                    '${product.currentStock}',
+                    style: TextStyle(
+                      color: isLowStock ? Colors.white : AppTheme.textSecondary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
-            ),
             
             // Out of Stock Overlay
             if (isOutOfStock)
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Center(
-                    child: Text(
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.errorColor,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
                       'OUT OF STOCK',
                       style: TextStyle(
-                        color: AppTheme.errorColor,
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 10,
                       ),
                     ),
                   ),

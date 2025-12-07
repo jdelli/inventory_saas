@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_saas/utils/theme.dart';
+import 'package:inventory_saas/widgets/dashboard/stat_card.dart';
 
 class CustomersTab extends StatefulWidget {
   const CustomersTab({super.key});
@@ -107,85 +108,78 @@ class _CustomersTabState extends State<CustomersTab> {
     final activeCustomers = _customers.where((c) => c['status'] == 'active').length;
     final totalRevenue = _customers.fold<double>(0, (sum, c) => sum + c['totalSpent']);
     
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Customers',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Manage your customer relationships and track customer data',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        
-        // Quick Stats
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildStatCard(
-              'Total Customers',
-              _customers.length.toString(),
-              Icons.people,
-              AppTheme.primaryColor,
-            ),
-            const SizedBox(width: 16),
-            _buildStatCard(
-              'Active Customers',
-              activeCustomers.toString(),
-              Icons.person_add,
-              AppTheme.successColor,
-            ),
-            const SizedBox(width: 16),
-            _buildStatCard(
-              'Total Revenue',
-              '\$${totalRevenue.toStringAsFixed(0)}',
-              Icons.trending_up,
-              AppTheme.infoColor,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Customers',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  'Manage customer relationships',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-      ],
-    );
-  }
+        const SizedBox(height: 16),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth > 800;
+            final cards = [
+              StatCard(
+                title: 'Total Customers',
+                value: _customers.length.toString(),
+                icon: Icons.people_outline,
+                color: AppTheme.primaryColor,
+              ),
+              StatCard(
+                title: 'Active',
+                value: activeCustomers.toString(),
+                icon: Icons.person_add_outlined,
+                color: AppTheme.successColor,
+              ),
+              StatCard(
+                title: 'Revenue',
+                value: '\$${totalRevenue.toStringAsFixed(0)}',
+                icon: Icons.trending_up,
+                color: AppTheme.infoColor,
+              ),
+            ];
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: color,
-            ),
-          ),
-        ],
-      ),
+            if (!isWide) {
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: cards.map((card) => SizedBox(
+                  width: (constraints.maxWidth - 12) / 2, 
+                  child: card,
+                )).toList(),
+              );
+            }
+
+            return Row(
+              children: cards.map((card) => Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: card,
+                ),
+              )).toList()..last = Expanded(child: cards.last),
+            );
+          },
+        ),
+      ],
     );
   }
 

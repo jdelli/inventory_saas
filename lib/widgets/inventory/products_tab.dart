@@ -5,6 +5,7 @@ import 'package:inventory_saas/models/product.dart';
 import 'package:inventory_saas/utils/theme.dart';
 import 'package:inventory_saas/widgets/inventory/add_product_modal.dart';
 import 'package:inventory_saas/widgets/inventory/product_view_modal.dart';
+import 'package:inventory_saas/widgets/dashboard/stat_card.dart';
 
 class ProductsTab extends StatefulWidget {
   const ProductsTab({super.key});
@@ -198,88 +199,58 @@ class _ProductsTabState extends State<ProductsTab> {
   Widget _buildStatisticsCards(InventoryProvider provider) {
     final filteredProducts = _getFilteredProducts(provider.products);
     
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildStatCard(
-              'Total Products',
-              filteredProducts.length.toString(),
-              Icons.inventory_2,
-              AppTheme.primaryColor,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildStatCard(
-              'Low Stock',
-              provider.lowStockProducts.length.toString(),
-              Icons.warning,
-              AppTheme.warningColor,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildStatCard(
-              'Out of Stock',
-              provider.outOfStockProducts.length.toString(),
-              Icons.error,
-              AppTheme.errorColor,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildStatCard(
-              'Total Value',
-              '\$${provider.totalStockValue.toStringAsFixed(0)}',
-              Icons.attach_money,
-              AppTheme.successColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 900;
+          final cards = [
+             StatCard(
+               title: 'Total Products',
+               value: filteredProducts.length.toString(),
+               icon: Icons.inventory_2_outlined,
+               color: AppTheme.primaryColor,
+             ),
+             StatCard(
+               title: 'Low Stock',
+               value: provider.lowStockProducts.length.toString(),
+               icon: Icons.warning_amber_rounded,
+               color: AppTheme.warningColor,
+             ),
+             StatCard(
+               title: 'Out of Stock',
+               value: provider.outOfStockProducts.length.toString(),
+               icon: Icons.error_outline,
+               color: AppTheme.errorColor,
+             ),
+             StatCard(
+               title: 'Total Value',
+               value: '\$${provider.totalStockValue.toStringAsFixed(0)}',
+               icon: Icons.attach_money,
+               color: AppTheme.successColor,
+             ),
+          ];
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+          if (!isWide) {
+            return Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: cards.map((card) => SizedBox(
+                width: (constraints.maxWidth - 12) / 2, // 2 columns approx
+                child: card,
+              )).toList(),
+            );
+          }
+
+          return Row(
+            children: cards.map((card) => Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: card,
               ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+            )).toList()..last = Expanded(child: cards.last),
+          );
+        },
       ),
     );
   }
@@ -289,28 +260,30 @@ class _ProductsTabState extends State<ProductsTab> {
     
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
       child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Table(
           columnWidths: const {
-            0: FlexColumnWidth(2.5), // Product
+            0: FlexColumnWidth(3), // Product
             1: FlexColumnWidth(1.5), // SKU
-            2: FlexColumnWidth(1.2), // Category
+            2: FlexColumnWidth(1.5), // Category
             3: FlexColumnWidth(1.2), // Stock
             4: FlexColumnWidth(1.0), // Cost
             5: FlexColumnWidth(1.0), // Price
-            6: FlexColumnWidth(1.0), // Status
-            7: FlexColumnWidth(1.0), // Actions
+            6: FlexColumnWidth(1.2), // Status
+            7: FixedColumnWidth(100), // Actions
           },
-          border: TableBorder.all(
-            color: Colors.grey.withOpacity(0.2),
-            width: 1,
+          border: TableBorder(
+            horizontalInside: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1), width: 1),
+            bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1), width: 1),
           ),
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
           children: [
             // Header Row
             TableRow(
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
+                border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor, width: 1)),
               ),
               children: [
                 _buildHeaderCell('Product'),
@@ -320,18 +293,21 @@ class _ProductsTabState extends State<ProductsTab> {
                 _buildHeaderCell('Cost'),
                 _buildHeaderCell('Price'),
                 _buildHeaderCell('Status'),
-                _buildHeaderCell('Actions'),
+                _buildHeaderCell('Actions', alignRight: true),
               ],
             ),
             // Data Rows
             ...filteredProducts.map((product) => TableRow(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+              ),
               children: [
                 _buildProductCell(product),
                 _buildCell(product.sku),
                 _buildCell(product.category),
                 _buildStockCell(product),
-                _buildCell('\$${product.costPrice.toStringAsFixed(2)}'),
-                _buildCell('\$${product.sellingPrice.toStringAsFixed(2)}'),
+                _buildCell('₱${product.costPrice.toStringAsFixed(2)}'),
+                _buildCell('₱${product.sellingPrice.toStringAsFixed(2)}', isBold: true),
                 _buildStatusCell(product),
                 _buildActionsCell(product),
               ],
@@ -342,51 +318,73 @@ class _ProductsTabState extends State<ProductsTab> {
     );
   }
 
-  Widget _buildHeaderCell(String text) {
+  Widget _buildHeaderCell(String text, {bool alignRight = false}) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      alignment: alignRight ? Alignment.centerRight : Alignment.centerLeft,
       child: Text(
-        text,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.bold,
+        text.toUpperCase(),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: AppTheme.textSecondary,
+          fontSize: 11,
+          letterSpacing: 0.5,
         ),
       ),
     );
   }
 
-  Widget _buildCell(String text) {
+  Widget _buildCell(String text, {bool isBold = false}) {
     return Container(
-      padding: const EdgeInsets.all(12),
-      child: Text(text),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
+          fontSize: 13,
+        ),
+      ),
     );
   }
 
   Widget _buildProductCell(Product product) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
-          CircleAvatar(
-            backgroundImage: NetworkImage(product.imageUrl),
-            radius: 16,
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: product.imageUrl.isNotEmpty
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Image.network(product.imageUrl, fit: BoxFit.cover),
+                )
+              : const Icon(Icons.image_not_supported_outlined, size: 16, color: AppTheme.textSecondary),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   product.name,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  product.brand,
-                  style: TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 12,
+                if (product.brand != 'Generic')
+                  Text(
+                    product.brand,
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 11,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -397,46 +395,41 @@ class _ProductsTabState extends State<ProductsTab> {
 
   Widget _buildStockCell(Product product) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
         children: [
-          Text('${product.currentStock} ${product.unit}'),
-          if (product.isLowStock)
-            Container(
-              margin: const EdgeInsets.only(left: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppTheme.warningColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'LOW',
-                style: TextStyle(
-                  color: AppTheme.warningColor,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+          Text(
+            '${product.currentStock}',
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            product.unit,
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildStatusCell(Product product) {
+    Color color = _getStatusColor(product);
+    String text = _getStatusText(product);
+    
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      alignment: Alignment.centerLeft,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
-          color: _getStatusColor(product).withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.3)),
+          borderRadius: BorderRadius.circular(4),
         ),
         child: Text(
-          _getStatusText(product),
+          text,
           style: TextStyle(
-            color: _getStatusColor(product),
-            fontSize: 12,
+            color: color,
+            fontSize: 10,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -446,25 +439,37 @@ class _ProductsTabState extends State<ProductsTab> {
 
   Widget _buildActionsCell(Product product) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      alignment: Alignment.centerRight,
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.edit, size: 16),
+            icon: const Icon(Icons.edit_outlined, size: 16),
             onPressed: () {
-              // TODO: Edit product
+              // TODO: Edit
             },
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            tooltip: 'Edit',
           ),
+          const SizedBox(width: 12),
           IconButton(
-            icon: const Icon(Icons.visibility, size: 16),
+            icon: const Icon(Icons.visibility_outlined, size: 16),
             onPressed: () => _showProductViewModal(product),
-            tooltip: 'View Details',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            tooltip: 'View',
           ),
-          IconButton(
-            icon: const Icon(Icons.delete, size: 16),
+          const SizedBox(width: 12),
+           IconButton(
+            icon: const Icon(Icons.delete_outline, size: 16, color: AppTheme.textSecondary),
             onPressed: () {
-              // TODO: Delete product
+               // TODO: Delete
             },
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            tooltip: 'Delete',
           ),
         ],
       ),

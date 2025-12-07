@@ -68,58 +68,45 @@ class _POSScreenState extends State<POSScreen> {
 
   Widget _buildTopBar() {
     final now = DateTime.now();
-    final dateFormat = DateFormat('EEEE, MMMM d, yyyy');
+    final dateFormat = DateFormat('MMM d, yyyy');
     final timeFormat = DateFormat('hh:mm a');
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1))),
       ),
       child: Row(
         children: [
           // Back Button
-          Container(
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.arrow_back),
-              color: AppTheme.primaryColor,
-              tooltip: 'Back to Dashboard',
-            ),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back),
+            color: AppTheme.textPrimary,
+            tooltip: 'Back to Dashboard',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           
           // POS Title
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppTheme.primaryColor, AppTheme.primaryDark],
-              ),
-              borderRadius: BorderRadius.circular(10),
+              color: AppTheme.primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(6),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.point_of_sale, color: Colors.white, size: 22),
-                SizedBox(width: 8),
+                const Icon(Icons.point_of_sale, color: AppTheme.primaryColor, size: 18),
+                const SizedBox(width: 8),
                 Text(
                   'Point of Sale',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -129,93 +116,57 @@ class _POSScreenState extends State<POSScreen> {
           const Spacer(),
           
           // Date & Time
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                dateFormat.format(now),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                timeFormat.format(now),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 24),
-          
-          // Theme Toggle
-          Consumer<ThemeProvider>(
-            builder: (context, themeProvider, _) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: IconButton(
-                  onPressed: () => themeProvider.toggleTheme(),
-                  icon: Icon(
-                    themeProvider.themeMode == ThemeMode.light
-                        ? Icons.dark_mode_outlined
-                        : Icons.light_mode_outlined,
-                  ),
-                  tooltip: themeProvider.themeMode == ThemeMode.light
-                      ? 'Dark Mode'
-                      : 'Light Mode',
-                ),
-              );
-            },
-          ),
-          const SizedBox(width: 8),
-          
-          // Fullscreen Toggle
           Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(6),
             ),
-            child: IconButton(
-              onPressed: () {
-                // TODO: Toggle fullscreen
-              },
-              icon: const Icon(Icons.fullscreen),
-              tooltip: 'Fullscreen',
+            child: Row(
+              children: [
+                Icon(Icons.access_time, size: 16, color: AppTheme.textSecondary),
+                const SizedBox(width: 8),
+                Text(
+                  '${dateFormat.format(now)} • ${timeFormat.format(now)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(width: 16),
           
-          // User Info
+          // Actions
           Row(
             children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: AppTheme.primaryColor,
-                child: const Icon(Icons.person, size: 18, color: Colors.white),
+              IconButton(
+                onPressed: () {
+                   final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+                   themeProvider.toggleTheme();
+                },
+                icon: Consumer<ThemeProvider>(
+                  builder: (context, themeProvider, _) => Icon(
+                    themeProvider.themeMode == ThemeMode.light
+                        ? Icons.dark_mode_outlined
+                        : Icons.light_mode_outlined,
+                    size: 20,
+                  ),
+                ),
+                tooltip: 'Toggle Theme',
               ),
               const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Cashier',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    'Register 1',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textSecondary,
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.fullscreen, size: 20),
+                tooltip: 'Fullscreen',
+              ),
+              const SizedBox(width: 16),
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: AppTheme.primaryColor,
+                child: const Text('C1', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
               ),
             ],
           ),

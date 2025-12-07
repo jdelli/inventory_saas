@@ -27,19 +27,28 @@ class _SalesScreenState extends State<SalesScreen> with TickerProviderStateMixin
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     
-    // Set initial tab based on arguments if provided
-    if (widget.arguments != null && widget.arguments!['tabIndex'] != null) {
-      _currentTabIndex = widget.arguments!['tabIndex'];
-      _tabController.index = _currentTabIndex;
-    }
-    
     _tabController.addListener(() {
+      if (!mounted) return;
       setState(() {
         _currentTabIndex = _tabController.index;
       });
     });
     
     _loadData();
+    _handleRouteArguments();
+  }
+
+  void _handleRouteArguments() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null && args.containsKey('tabIndex')) {
+        final tabIndex = args['tabIndex'] as int;
+        if (tabIndex >= 0 && tabIndex < 4) {
+          _tabController.animateTo(tabIndex);
+        }
+      }
+    });
   }
 
   @override
@@ -66,6 +75,12 @@ class _SalesScreenState extends State<SalesScreen> with TickerProviderStateMixin
                 _isSidebarExpanded = !_isSidebarExpanded;
               });
             },
+            currentRoute: const [
+              '/sales/orders',
+              '/sales/customers',
+              '/sales/invoices',
+              '/sales/ecommerce'
+            ][_currentTabIndex],
           ),
           
           // Main Content
@@ -89,29 +104,23 @@ class _SalesScreenState extends State<SalesScreen> with TickerProviderStateMixin
 
   Widget _buildAppBar() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1))),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.shopping_cart,
+          const Icon(
+            Icons.shopping_cart_outlined,
             color: AppTheme.primaryColor,
-            size: 24,
+            size: 20,
           ),
           const SizedBox(width: 12),
           Text(
             'Sales Management',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
           ),
           const Spacer(),
@@ -119,6 +128,13 @@ class _SalesScreenState extends State<SalesScreen> with TickerProviderStateMixin
           // Quick Actions
           Row(
             children: [
+               IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.analytics_outlined, size: 20),
+                tooltip: 'Sales Analytics',
+                color: AppTheme.textSecondary,
+              ),
+              const SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: () {
                   // TODO: Create new order
@@ -129,24 +145,8 @@ class _SalesScreenState extends State<SalesScreen> with TickerProviderStateMixin
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
-              ),
-              const SizedBox(width: 12),
-              IconButton(
-                onPressed: () {
-                  // TODO: Show sales analytics
-                },
-                icon: const Icon(Icons.analytics_outlined),
-                tooltip: 'Sales Analytics',
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: () {
-                  // TODO: Show notifications
-                },
-                icon: const Icon(Icons.notifications_outlined),
-                tooltip: 'Notifications',
               ),
             ],
           ),
@@ -160,33 +160,36 @@ class _SalesScreenState extends State<SalesScreen> with TickerProviderStateMixin
       children: [
         // Tab Bar
         Container(
-          color: Theme.of(context).cardColor,
-          child: TabBar(
-            controller: _tabController,
-            labelColor: AppTheme.primaryColor,
-            unselectedLabelColor: AppTheme.textSecondary,
-            indicatorColor: AppTheme.primaryColor,
-            indicatorWeight: 3,
-            labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
-            tabs: const [
-              Tab(
-                icon: Icon(Icons.receipt),
-                text: 'Orders',
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1))),
+          ),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              tabBarTheme: const TabBarThemeData(
+                labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Poppins', fontSize: 14),
+                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontFamily: 'Poppins', fontSize: 14),
+                labelColor: AppTheme.primaryColor,
+                unselectedLabelColor: AppTheme.textSecondary,
+                indicator: const UnderlineTabIndicator(
+                  borderSide: BorderSide(color: AppTheme.primaryColor, width: 2),
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
               ),
-              Tab(
-                icon: Icon(Icons.people),
-                text: 'Customers',
-              ),
-              Tab(
-                icon: Icon(Icons.description),
-                text: 'Invoices',
-              ),
-              Tab(
-                icon: Icon(Icons.store),
-                text: 'E-commerce',
-              ),
-            ],
+            ),
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              tabs: const [
+                Tab(text: 'Orders'),
+                Tab(text: 'Customers'),
+                Tab(text: 'Invoices'),
+                Tab(text: 'E-commerce'),
+              ],
+            ),
           ),
         ),
         

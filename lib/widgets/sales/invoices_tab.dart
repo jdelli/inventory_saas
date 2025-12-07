@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_saas/utils/theme.dart';
+import 'package:inventory_saas/widgets/dashboard/stat_card.dart';
 
 class InvoicesTab extends StatefulWidget {
   const InvoicesTab({super.key});
@@ -115,92 +116,84 @@ class _InvoicesTabState extends State<InvoicesTab> {
     final totalOutstanding = totalInvoiced - totalPaid;
     final overdueInvoices = _invoices.where((inv) => inv['status'] == 'overdue').length;
     
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Invoices',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Manage invoices, track payments, and monitor outstanding balances',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        
-        // Quick Stats
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildStatCard(
-              'Total Invoiced',
-              '\$${totalInvoiced.toStringAsFixed(0)}',
-              Icons.receipt_long,
-              AppTheme.primaryColor,
-            ),
-            const SizedBox(width: 16),
-            _buildStatCard(
-              'Total Paid',
-              '\$${totalPaid.toStringAsFixed(0)}',
-              Icons.payment,
-              AppTheme.successColor,
-            ),
-            const SizedBox(width: 16),
-            _buildStatCard(
-              'Outstanding',
-              '\$${totalOutstanding.toStringAsFixed(0)}',
-              Icons.pending,
-              AppTheme.warningColor,
-            ),
-            const SizedBox(width: 16),
-            _buildStatCard(
-              'Overdue',
-              overdueInvoices.toString(),
-              Icons.warning,
-              AppTheme.errorColor,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Invoices',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  'Manage invoices and payments',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-      ],
-    );
-  }
+        const SizedBox(height: 16),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth > 900;
+            final cards = [
+              StatCard(
+                title: 'Total Invoiced',
+                value: '\$${totalInvoiced.toStringAsFixed(0)}',
+                icon: Icons.receipt_long,
+                color: AppTheme.primaryColor,
+              ),
+              StatCard(
+                title: 'Paid',
+                value: '\$${totalPaid.toStringAsFixed(0)}',
+                icon: Icons.check_circle_outline,
+                color: AppTheme.successColor,
+              ),
+              StatCard(
+                title: 'Outstanding',
+                value: '\$${totalOutstanding.toStringAsFixed(0)}',
+                icon: Icons.pending_outlined,
+                color: AppTheme.warningColor,
+              ),
+              StatCard(
+                title: 'Overdue',
+                value: overdueInvoices.toString(),
+                icon: Icons.error_outline,
+                color: AppTheme.errorColor,
+              ),
+            ];
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: color,
-            ),
-          ),
-        ],
-      ),
+            if (!isWide) {
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: cards.map((card) => SizedBox(
+                  width: (constraints.maxWidth - 12) / 2, 
+                  child: card,
+                )).toList(),
+              );
+            }
+
+            return Row(
+              children: cards.map((card) => Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: card,
+                ),
+              )).toList()..last = Expanded(child: cards.last),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -212,9 +205,11 @@ class _InvoicesTabState extends State<InvoicesTab> {
           flex: 2,
           child: TextField(
             controller: _searchController,
+            style: const TextStyle(fontSize: 13),
             decoration: InputDecoration(
-              hintText: 'Search invoices by ID, customer, or order number...',
-              prefixIcon: const Icon(Icons.search),
+              hintText: 'Search invoices...',
+              prefixIcon: const Icon(Icons.search, size: 18),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
                       onPressed: () {
@@ -223,7 +218,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                           _searchQuery = '';
                         });
                       },
-                      icon: const Icon(Icons.clear),
+                      icon: const Icon(Icons.clear, size: 16),
                     )
                   : null,
               border: OutlineInputBorder(
@@ -238,14 +233,16 @@ class _InvoicesTabState extends State<InvoicesTab> {
           ),
         ),
         
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         
         // Status Filter
         Expanded(
           child: DropdownButtonFormField<String?>(
             value: _statusFilter,
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
             decoration: InputDecoration(
-              labelText: 'Invoice Status',
+              labelText: 'Status',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -253,7 +250,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
             items: [
               const DropdownMenuItem(
                 value: null,
-                child: Text('All Statuses'),
+                child: Text('All'),
               ),
               const DropdownMenuItem(
                 value: 'paid',
@@ -280,17 +277,18 @@ class _InvoicesTabState extends State<InvoicesTab> {
           ),
         ),
         
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         
         // Create Invoice Button
         ElevatedButton.icon(
           onPressed: () => _showCreateInvoiceDialog(),
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Create Invoice'),
+          icon: const Icon(Icons.add, size: 16),
+          label: const Text('Create', style: TextStyle(fontSize: 13)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.primaryColor,
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            minimumSize: const Size(0, 48),
           ),
         ),
       ],
@@ -303,22 +301,15 @@ class _InvoicesTabState extends State<InvoicesTab> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-                         Icon(
-               Icons.receipt_long,
-               size: 64,
+             Icon(
+               Icons.receipt_long_outlined,
+               size: 48,
                color: AppTheme.textSecondary,
              ),
             const SizedBox(height: 16),
             Text(
               'No invoices found',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Try adjusting your filters or create a new invoice',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: AppTheme.textSecondary,
               ),
             ),
@@ -331,19 +322,32 @@ class _InvoicesTabState extends State<InvoicesTab> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
-          columns: const [
-            DataColumn(label: Text('Invoice #')),
-            DataColumn(label: Text('Order #')),
-            DataColumn(label: Text('Customer')),
-            DataColumn(label: Text('Issue Date')),
-            DataColumn(label: Text('Due Date')),
-            DataColumn(label: Text('Amount')),
-            DataColumn(label: Text('Status')),
-            DataColumn(label: Text('Actions')),
+          headingRowHeight: 48,
+          dataRowMinHeight: 48,
+          dataRowMaxHeight: 56,
+          columnSpacing: 24,
+          horizontalMargin: 16,
+          columns: [
+            DataColumn(label: Text('INVOICE #', style: _headerStyle())),
+            DataColumn(label: Text('ORDER #', style: _headerStyle())),
+            DataColumn(label: Text('CUSTOMER', style: _headerStyle())),
+            DataColumn(label: Text('ISSUED', style: _headerStyle())),
+            DataColumn(label: Text('DUE', style: _headerStyle())),
+            DataColumn(label: Text('AMOUNT', style: _headerStyle())),
+            DataColumn(label: Text('STATUS', style: _headerStyle())),
+            DataColumn(label: Text('ACTIONS', style: _headerStyle())),
           ],
           rows: invoices.map((invoice) => _buildInvoiceRow(invoice)).toList(),
         ),
       ),
+    );
+  }
+
+  TextStyle _headerStyle() {
+    return TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.w700,
+      color: AppTheme.textSecondary,
     );
   }
 
@@ -358,13 +362,13 @@ class _InvoicesTabState extends State<InvoicesTab> {
         DataCell(
           Text(
             invoice['id'],
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
           ),
         ),
         DataCell(
           Text(
             invoice['orderNumber'],
-            style: const TextStyle(fontWeight: FontWeight.w500),
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
           ),
         ),
         DataCell(
@@ -374,27 +378,30 @@ class _InvoicesTabState extends State<InvoicesTab> {
             children: [
               Text(
                 invoice['customerName'],
-                style: const TextStyle(fontWeight: FontWeight.w500),
+                style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
               ),
-              Text(
-                invoice['customerEmail'],
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textSecondary,
+              if (invoice['customerEmail'].isNotEmpty)
+                Text(
+                  invoice['customerEmail'],
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppTheme.textSecondary,
+                    fontSize: 11,
+                  ),
                 ),
-              ),
             ],
           ),
         ),
         DataCell(
           Text(
             invoice['issueDate'],
-            style: const TextStyle(fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: 13),
           ),
         ),
         DataCell(
           Text(
             invoice['dueDate'],
             style: TextStyle(
+              fontSize: 13,
               fontWeight: FontWeight.w500,
               color: isOverdue ? AppTheme.errorColor : null,
             ),
@@ -407,13 +414,14 @@ class _InvoicesTabState extends State<InvoicesTab> {
             children: [
               Text(
                 '\$${invoice['amount'].toStringAsFixed(2)}',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
               ),
               if (outstandingAmount > 0)
                 Text(
-                  'Outstanding: \$${outstandingAmount.toStringAsFixed(2)}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  'Due: \$${outstandingAmount.toStringAsFixed(2)}',
+                  style: TextStyle(
                     color: AppTheme.warningColor,
+                    fontSize: 10,
                   ),
                 ),
             ],
@@ -428,18 +436,26 @@ class _InvoicesTabState extends State<InvoicesTab> {
             children: [
               IconButton(
                 onPressed: () => _viewInvoiceDetails(invoice),
-                icon: const Icon(Icons.visibility, size: 18),
-                tooltip: 'View Details',
+                icon: const Icon(Icons.visibility_outlined, size: 16),
+                tooltip: 'View',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
+              const SizedBox(width: 8),
               IconButton(
                 onPressed: () => _downloadInvoice(invoice),
-                icon: const Icon(Icons.download, size: 18),
+                icon: const Icon(Icons.download_outlined, size: 16),
                 tooltip: 'Download',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
+              const SizedBox(width: 8),
               IconButton(
                 onPressed: () => _showInvoiceActions(invoice),
-                icon: const Icon(Icons.more_vert, size: 18),
-                tooltip: 'More Actions',
+                icon: const Icon(Icons.more_horiz, size: 16),
+                tooltip: 'More',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),

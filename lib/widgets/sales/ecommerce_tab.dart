@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_saas/utils/theme.dart';
+import 'package:inventory_saas/widgets/dashboard/stat_card.dart';
 
 class EcommerceTab extends StatefulWidget {
   const EcommerceTab({super.key});
@@ -115,92 +116,84 @@ class _EcommerceTabState extends State<EcommerceTab> {
     final totalOrders = _platforms.fold<int>(0, (sum, p) => sum + (p['totalOrders'] as int));
     final totalProducts = _platforms.fold<int>(0, (sum, p) => sum + (p['products'] as int));
     
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'E-commerce Integration',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Manage your online stores and synchronize data across platforms',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        
-        // Quick Stats
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildStatCard(
-              'Active Stores',
-              activePlatforms.toString(),
-              Icons.store,
-              AppTheme.primaryColor,
-            ),
-            const SizedBox(width: 16),
-            _buildStatCard(
-              'Total Sales',
-              '\$${totalSales.toStringAsFixed(0)}',
-              Icons.trending_up,
-              AppTheme.successColor,
-            ),
-            const SizedBox(width: 16),
-            _buildStatCard(
-              'Total Orders',
-              totalOrders.toString(),
-              Icons.shopping_cart,
-              AppTheme.infoColor,
-            ),
-            const SizedBox(width: 16),
-            _buildStatCard(
-              'Total Products',
-              totalProducts.toString(),
-              Icons.inventory_2,
-              AppTheme.warningColor,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'E-commerce Integration',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  'Manage online stores',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-      ],
-    );
-  }
+        const SizedBox(height: 16),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth > 900;
+            final cards = [
+              StatCard(
+                title: 'Active Stores',
+                value: activePlatforms.toString(),
+                icon: Icons.store,
+                color: AppTheme.primaryColor,
+              ),
+              StatCard(
+                title: 'Sales',
+                value: '\$${totalSales.toStringAsFixed(0)}',
+                icon: Icons.trending_up,
+                color: AppTheme.successColor,
+              ),
+              StatCard(
+                title: 'Orders',
+                value: totalOrders.toString(),
+                icon: Icons.shopping_cart,
+                color: AppTheme.infoColor,
+              ),
+              StatCard(
+                title: 'Products',
+                value: totalProducts.toString(),
+                icon: Icons.inventory_2,
+                color: AppTheme.warningColor,
+              ),
+            ];
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: color,
-            ),
-          ),
-        ],
-      ),
+            if (!isWide) {
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: cards.map((card) => SizedBox(
+                  width: (constraints.maxWidth - 12) / 2, 
+                  child: card,
+                )).toList(),
+              );
+            }
+
+            return Row(
+              children: cards.map((card) => Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: card,
+                ),
+              )).toList()..last = Expanded(child: cards.last),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -212,9 +205,11 @@ class _EcommerceTabState extends State<EcommerceTab> {
           flex: 2,
           child: TextField(
             controller: _searchController,
+            style: const TextStyle(fontSize: 13),
             decoration: InputDecoration(
-              hintText: 'Search platforms, store names, or URLs...',
-              prefixIcon: const Icon(Icons.search),
+              hintText: 'Search platforms...',
+              prefixIcon: const Icon(Icons.search, size: 18),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
                       onPressed: () {
@@ -223,7 +218,7 @@ class _EcommerceTabState extends State<EcommerceTab> {
                           _searchQuery = '';
                         });
                       },
-                      icon: const Icon(Icons.clear),
+                      icon: const Icon(Icons.clear, size: 16),
                     )
                   : null,
               border: OutlineInputBorder(
@@ -238,14 +233,16 @@ class _EcommerceTabState extends State<EcommerceTab> {
           ),
         ),
         
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         
         // Platform Filter
         Expanded(
           child: DropdownButtonFormField<String?>(
             value: _platformFilter,
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
             decoration: InputDecoration(
               labelText: 'Platform',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -253,7 +250,7 @@ class _EcommerceTabState extends State<EcommerceTab> {
             items: [
               const DropdownMenuItem(
                 value: null,
-                child: Text('All Platforms'),
+                child: Text('All'),
               ),
               const DropdownMenuItem(
                 value: 'Shopify',
@@ -284,17 +281,18 @@ class _EcommerceTabState extends State<EcommerceTab> {
           ),
         ),
         
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         
         // Add Platform Button
         ElevatedButton.icon(
           onPressed: () => _showAddPlatformDialog(),
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Add Platform'),
+          icon: const Icon(Icons.add, size: 16),
+          label: const Text('Add Store', style: TextStyle(fontSize: 13)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.primaryColor,
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+             minimumSize: const Size(0, 48),
           ),
         ),
       ],
