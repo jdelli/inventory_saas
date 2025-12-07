@@ -3,6 +3,7 @@ import 'package:inventory_saas/utils/theme.dart';
 import 'package:inventory_saas/screens/dashboard/dashboard_screen.dart';
 import 'package:inventory_saas/screens/inventory/inventory_screen.dart';
 import 'package:inventory_saas/screens/sales/sales_screen.dart';
+import 'package:inventory_saas/screens/pos/pos_screen.dart';
 
 class Sidebar extends StatefulWidget {
   final bool isExpanded;
@@ -27,6 +28,11 @@ class _SidebarState extends State<Sidebar> {
       title: 'Dashboard',
       icon: Icons.dashboard,
       route: '/dashboard',
+    ),
+    SidebarItem(
+      title: 'Point of Sale',
+      icon: Icons.point_of_sale,
+      route: '/pos',
     ),
     SidebarItem(
       title: 'Inventory',
@@ -304,6 +310,11 @@ class _SidebarState extends State<Sidebar> {
       case '/dashboard':
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        );
+        break;
+      case '/pos':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const POSScreen()),
         );
         break;
       case '/inventory':
