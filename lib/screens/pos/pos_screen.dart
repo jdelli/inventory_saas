@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:inventory_saas/providers/pos_provider.dart';
 import 'package:inventory_saas/providers/inventory_provider.dart';
 import 'package:inventory_saas/providers/theme_provider.dart';
-import 'package:inventory_saas/utils/theme.dart';
 import 'package:inventory_saas/widgets/pos/pos_product_grid.dart';
 import 'package:inventory_saas/widgets/pos/pos_cart_panel.dart';
 import 'package:intl/intl.dart';
+import 'dart:ui';
 
 class POSScreen extends StatefulWidget {
   const POSScreen({super.key});
@@ -16,15 +16,14 @@ class POSScreen extends StatefulWidget {
 }
 
 class _POSScreenState extends State<POSScreen> with SingleTickerProviderStateMixin {
-  AnimationController? _controller;
-  Animation<double>? _tiltAnimation;
+  AnimationController? _fadeController;
+  Animation<double>? _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
-    _ensureAnimationsInitialized();
-    
-    // Load products if not already loaded
+    _initAnimation();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final inventoryProvider = Provider.of<InventoryProvider>(context, listen: false);
       if (inventoryProvider.products.isEmpty) {
@@ -33,257 +32,316 @@ class _POSScreenState extends State<POSScreen> with SingleTickerProviderStateMix
     });
   }
 
-  void _ensureAnimationsInitialized() {
-    if (_controller != null) return;
-    
-    _controller = AnimationController(
+  void _initAnimation() {
+    _fadeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 600),
     );
-    _tiltAnimation = Tween<double>(begin: 0.1, end: 0.02).animate(
-      CurvedAnimation(parent: _controller!, curve: Curves.easeOutBack),
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController!,
+      curve: Curves.easeOutCubic,
     );
-    _controller!.forward();
+    _fadeController!.forward();
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _fadeController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Listen to theme changes
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return ChangeNotifierProvider(
       create: (_) => POSProvider(),
       child: Scaffold(
+        backgroundColor: const Color(0xFFF1F5F9),
         body: Container(
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: const Alignment(-0.3, -0.3),
-              radius: 1.5,
-              colors: isDark 
-                ? [
-                    const Color(0xFF2C3E50), // Slate Blue
-                    const Color(0xFF1a252f), // Darker slate
-                    const Color(0xFF0F172A), // Deep Navy
-                  ]
-                : [
-                    const Color(0xFFF0F9FF), // Light Sky
-                    const Color(0xFFE0F2FE), // Pale Blue
-                    const Color(0xFFF1F5F9), // Light Grey
-                  ],
-              stops: const [0.0, 0.5, 1.0],
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFF8FAFC),
+                Color(0xFFEEF2F6),
+                Color(0xFFE2E8F0),
+              ],
+              stops: [0.0, 0.5, 1.0],
             ),
           ),
-          child: Column(
-            children: [
-              // Top Bar
-              _buildTopBar(),
-
-              // Main Workspace
-              Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Product Grid Area
-                    Expanded(
-                      flex: 65,
-                      child: Container(
-                       // Transparent container to let products float on background
-                        padding: const EdgeInsets.only(left: 20, top: 10, bottom: 20, right: 10),
-                        child: const POSProductGrid(),
-                      ),
-                    ),
-                    
-                    // Cart Panel Area (Floating Glass Effect)
-                    Expanded(
-                      flex: 35,
-                      child: Container(
-                        margin: const EdgeInsets.only(top: 10, bottom: 20, right: 20, left: 10),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor.withOpacity(0.95),
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 30,
-                              offset: const Offset(-5, 10),
-                            ),
-                          ],
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.1),
-                            width: 1,
+          child: FadeTransition(
+            opacity: _fadeAnimation ?? const AlwaysStoppedAnimation(1.0),
+            child: Column(
+              children: [
+                _buildCompactTopBar(),
+                Expanded(
+                  child: Row(
+                    children: [
+                      // Product Grid - 3D Inset Panel
+                      Expanded(
+                        flex: 68,
+                        child: Container(
+                          margin: const EdgeInsets.only(left: 16, bottom: 16, right: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              // Outer shadow for 3D lift
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 24,
+                                offset: const Offset(0, 8),
+                                spreadRadius: -4,
+                              ),
+                              // Inner highlight
+                              BoxShadow(
+                                color: Colors.white.withOpacity(0.9),
+                                blurRadius: 0,
+                                offset: const Offset(0, -1),
+                                spreadRadius: 0,
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: const POSProductGrid(),
                           ),
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(24),
-                          child: const POSCartPanel(),
+                      ),
+
+                      // Cart Panel - Elevated 3D Card
+                      Expanded(
+                        flex: 32,
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 16, bottom: 16, left: 8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              // Primary depth shadow
+                              BoxShadow(
+                                color: const Color(0xFF3B82F6).withOpacity(0.12),
+                                blurRadius: 32,
+                                offset: const Offset(-8, 12),
+                                spreadRadius: -8,
+                              ),
+                              // Ambient shadow
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: const POSCartPanel(),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTopBar() {
+  Widget _buildCompactTopBar() {
     final now = DateTime.now();
-    final dateFormat = DateFormat('MMM d, yyyy');
+    final dateFormat = DateFormat('EEE, MMM d');
     final timeFormat = DateFormat('hh:mm a');
 
     return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+          // Top highlight for 3D effect
+          const BoxShadow(
+            color: Colors.white,
+            blurRadius: 0,
+            offset: Offset(0, -1),
           ),
         ],
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Row(
         children: [
-          // Back Button
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.arrow_back),
-              color: AppTheme.textPrimary,
-              tooltip: 'Back to Dashboard',
-            ),
+          // Back Button - 3D Pressed Effect
+          _build3DIconButton(
+            icon: Icons.arrow_back_rounded,
+            onTap: () => Navigator.pop(context),
+            tooltip: 'Back',
           ),
-          const SizedBox(width: 20),
-          
-          // POS Title
+          const SizedBox(width: 12),
+
+          // POS Badge - Elevated 3D
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               boxShadow: [
-                 BoxShadow(
-                  color: const Color(0xFF4F46E5).withOpacity(0.4),
+                BoxShadow(
+                  color: const Color(0xFF2563EB).withOpacity(0.4),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
+                  spreadRadius: -2,
+                ),
+              ],
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.storefront_rounded, color: Colors.white, size: 18),
+                SizedBox(width: 8),
+                Text(
+                  'POS Terminal',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const Spacer(),
+
+          // Date/Time Pill - Subtle 3D Inset
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: [
+                // Inset shadow effect
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 2,
+                  offset: const Offset(0, 1),
                 ),
               ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.point_of_sale, color: Colors.white, size: 20),
-                const SizedBox(width: 10),
+                const Icon(Icons.schedule_rounded, size: 14, color: Color(0xFF64748B)),
+                const SizedBox(width: 8),
                 Text(
-                  'Counter POS',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          const Spacer(),
-          
-          // Date & Time
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.access_time, size: 18, color: AppTheme.primaryColor),
-                const SizedBox(width: 10),
-                Text(
-                  '${dateFormat.format(now)}   ${timeFormat.format(now)}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  '${dateFormat.format(now)}  ${timeFormat.format(now)}',
+                  style: const TextStyle(
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                    fontFamily: 'RobotoMono', // Monospace for numbers looks cool if available, else fallback
+                    color: Color(0xFF475569),
+                    fontFeatures: [FontFeature.tabularFigures()],
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 20),
-          
-          // Actions
-          Row(
-            children: [
-              IconButton(
-                onPressed: () {
-                   final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-                   themeProvider.toggleTheme();
-                },
-                icon: Consumer<ThemeProvider>(
-                  builder: (context, themeProvider, _) => Icon(
-                    themeProvider.themeMode == ThemeMode.light
-                        ? Icons.dark_mode_outlined
-                        : Icons.light_mode_outlined,
-                    size: 24,
-                  ),
-                ),
-                tooltip: 'Toggle Theme',
+          const SizedBox(width: 12),
+
+          // Theme Toggle - 3D Switch
+          _build3DIconButton(
+            icon: Icons.light_mode_rounded,
+            onTap: () {
+              final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+              themeProvider.toggleTheme();
+            },
+            tooltip: 'Theme',
+            isActive: true,
+          ),
+          const SizedBox(width: 8),
+
+          // User Avatar - 3D Badge
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF10B981), Color(0xFF059669)],
               ),
-              const SizedBox(width: 12),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppTheme.primaryColor,
-                      AppTheme.primaryColor.withOpacity(0.8),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.primaryColor.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF10B981).withOpacity(0.4),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
                 ),
-                alignment: Alignment.center,
-                child: const Text(
-                  'C1', 
-                  style: TextStyle(
-                    color: Colors.white, 
-                    fontSize: 14, 
-                    fontWeight: FontWeight.bold
-                  )
+              ],
+            ),
+            child: const Center(
+              child: Text(
+                'C1',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-            ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _build3DIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    required String tooltip,
+    bool isActive = false,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: isActive ? const Color(0xFFFEF3C7) : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isActive ? const Color(0xFFFCD34D) : const Color(0xFFE2E8F0),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 2,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              size: 18,
+              color: isActive ? const Color(0xFFD97706) : const Color(0xFF64748B),
+            ),
+          ),
+        ),
       ),
     );
   }
