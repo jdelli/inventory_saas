@@ -15,7 +15,8 @@ class POSScreen extends StatefulWidget {
   State<POSScreen> createState() => _POSScreenState();
 }
 
-class _POSScreenState extends State<POSScreen> with SingleTickerProviderStateMixin {
+class _POSScreenState extends State<POSScreen>
+    with SingleTickerProviderStateMixin {
   AnimationController? _fadeController;
   Animation<double>? _fadeAnimation;
 
@@ -25,7 +26,10 @@ class _POSScreenState extends State<POSScreen> with SingleTickerProviderStateMix
     _initAnimation();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final inventoryProvider = Provider.of<InventoryProvider>(context, listen: false);
+      final inventoryProvider = Provider.of<InventoryProvider>(
+        context,
+        listen: false,
+      );
       if (inventoryProvider.products.isEmpty) {
         inventoryProvider.loadProducts();
       }
@@ -56,104 +60,254 @@ class _POSScreenState extends State<POSScreen> with SingleTickerProviderStateMix
       create: (_) => POSProvider(),
       child: Scaffold(
         backgroundColor: const Color(0xFFE8EDF5),
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFF0F4FA),
-                Color(0xFFE8EDF5),
-                Color(0xFFDFE6F0),
-              ],
-              stops: [0.0, 0.5, 1.0],
+        body: Stack(
+          children: [
+            Positioned.fill(child: _buildLayeredBackground()),
+            Positioned.fill(
+              child: FadeTransition(
+                opacity: _fadeAnimation ?? const AlwaysStoppedAnimation(1.0),
+                child: Column(
+                  children: [
+                    _build3DTopBar(),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          // Product Grid - 3D Neumorphic Panel
+                          Expanded(
+                            flex: 68,
+                            child: Container(
+                              margin: const EdgeInsets.only(
+                                left: 16,
+                                bottom: 16,
+                                right: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFFF4F7FD),
+                                    Color(0xFFE8EDF5),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.55),
+                                  width: 1.2,
+                                ),
+                                boxShadow: [
+                                  // Depth shadow
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFFB7C3D7,
+                                    ).withOpacity(0.9),
+                                    offset: const Offset(12, 14),
+                                    blurRadius: 30,
+                                    spreadRadius: -6,
+                                  ),
+                                  // Top rim light
+                                  BoxShadow(
+                                    color: Colors.white.withOpacity(0.9),
+                                    offset: const Offset(-10, -10),
+                                    blurRadius: 28,
+                                    spreadRadius: 2,
+                                  ),
+                                  // Soft ambient glow
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF60A5FA,
+                                    ).withOpacity(0.06),
+                                    offset: const Offset(0, 10),
+                                    blurRadius: 32,
+                                    spreadRadius: -4,
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(24),
+                                child: const POSProductGrid(),
+                              ),
+                            ),
+                          ),
+
+                          // Cart Panel - 3D Neumorphic Card
+                          Expanded(
+                            flex: 32,
+                            child: Container(
+                              margin: const EdgeInsets.only(
+                                right: 16,
+                                bottom: 16,
+                                left: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFFF4F7FD),
+                                    Color(0xFFE8EDF5),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.6),
+                                  width: 1.2,
+                                ),
+                                boxShadow: [
+                                  // Depth shadow
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFFB0BDD0,
+                                    ).withOpacity(0.95),
+                                    offset: const Offset(12, 14),
+                                    blurRadius: 30,
+                                    spreadRadius: -6,
+                                  ),
+                                  // Top rim light
+                                  BoxShadow(
+                                    color: Colors.white.withOpacity(0.95),
+                                    offset: const Offset(-10, -10),
+                                    blurRadius: 28,
+                                    spreadRadius: 2,
+                                  ),
+                                  // Accent glow
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF6366F1,
+                                    ).withOpacity(0.12),
+                                    offset: const Offset(0, 10),
+                                    blurRadius: 40,
+                                    spreadRadius: -6,
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(24),
+                                child: const POSCartPanel(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLayeredBackground() {
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          // Base gradient
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFF3F6FC),
+                  Color(0xFFE8EDF5),
+                  Color(0xFFDDE5F2),
+                ],
+                stops: [0.0, 0.45, 1.0],
+              ),
             ),
           ),
-          child: FadeTransition(
-            opacity: _fadeAnimation ?? const AlwaysStoppedAnimation(1.0),
-            child: Column(
-              children: [
-                _build3DTopBar(),
-                Expanded(
-                  child: Row(
-                    children: [
-                      // Product Grid - 3D Neumorphic Panel
-                      Expanded(
-                        flex: 68,
-                        child: Container(
-                          margin: const EdgeInsets.only(left: 16, bottom: 16, right: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE8EDF5),
-                            borderRadius: BorderRadius.circular(24),
-                            boxShadow: [
-                              // Dark shadow (bottom-right)
-                              BoxShadow(
-                                color: const Color(0xFFBEC8D9),
-                                offset: const Offset(10, 10),
-                                blurRadius: 25,
-                                spreadRadius: 0,
-                              ),
-                              // Light shadow (top-left)
-                              const BoxShadow(
-                                color: Colors.white,
-                                offset: Offset(-10, -10),
-                                blurRadius: 25,
-                                spreadRadius: 0,
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(24),
-                            child: const POSProductGrid(),
-                          ),
-                        ),
-                      ),
 
-                      // Cart Panel - 3D Neumorphic Card
-                      Expanded(
-                        flex: 32,
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 16, bottom: 16, left: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE8EDF5),
-                            borderRadius: BorderRadius.circular(24),
-                            boxShadow: [
-                              // Dark shadow (bottom-right)
-                              BoxShadow(
-                                color: const Color(0xFFBEC8D9),
-                                offset: const Offset(10, 10),
-                                blurRadius: 25,
-                                spreadRadius: 0,
-                              ),
-                              // Light shadow (top-left)
-                              const BoxShadow(
-                                color: Colors.white,
-                                offset: Offset(-10, -10),
-                                blurRadius: 25,
-                                spreadRadius: 0,
-                              ),
-                              // Accent glow
-                              BoxShadow(
-                                color: const Color(0xFF6366F1).withOpacity(0.08),
-                                offset: const Offset(0, 8),
-                                blurRadius: 30,
-                                spreadRadius: -5,
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(24),
-                            child: const POSCartPanel(),
-                          ),
-                        ),
-                      ),
+          // Soft glows behind panels
+          Positioned(
+            top: -40,
+            left: -60,
+            child: _buildGlowCircle(
+              size: 260,
+              colors: [
+                const Color(0xFF93C5FD).withOpacity(0.28),
+                Colors.transparent,
+              ],
+            ),
+          ),
+          Positioned(
+            top: 80,
+            right: -40,
+            child: _buildGlowCircle(
+              size: 220,
+              colors: [
+                const Color(0xFFC4B5FD).withOpacity(0.25),
+                Colors.transparent,
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 60,
+            left: 120,
+            child: _buildGlowCircle(
+              size: 280,
+              colors: [
+                const Color(0xFF10B981).withOpacity(0.18),
+                Colors.transparent,
+              ],
+            ),
+          ),
+
+          // Floor gradient to anchor depth
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                height: 260,
+                margin: const EdgeInsets.symmetric(horizontal: 60),
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.topCenter,
+                    radius: 1.35,
+                    colors: [
+                      const Color(0xFFB4BED1).withOpacity(0.35),
+                      Colors.transparent,
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+
+          // Subtle vertical light streak behind top bar
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                width: 420,
+                height: 320,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withOpacity(0.42),
+                      Colors.white.withOpacity(0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlowCircle({required double size, required List<Color> colors}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(colors: colors, stops: const [0.0, 1.0]),
       ),
     );
   }
@@ -167,8 +321,13 @@ class _POSScreenState extends State<POSScreen> with SingleTickerProviderStateMix
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8EDF5),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF5F8FD), Color(0xFFE8EDF5)],
+        ),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.7), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFFBEC8D9),
@@ -179,6 +338,12 @@ class _POSScreenState extends State<POSScreen> with SingleTickerProviderStateMix
             color: Colors.white,
             offset: Offset(-6, -6),
             blurRadius: 18,
+          ),
+          BoxShadow(
+            color: const Color(0xFF7C3AED).withOpacity(0.08),
+            offset: const Offset(0, 6),
+            blurRadius: 24,
+            spreadRadius: -6,
           ),
         ],
       ),
@@ -267,7 +432,11 @@ class _POSScreenState extends State<POSScreen> with SingleTickerProviderStateMix
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.schedule_rounded, size: 16, color: Color(0xFF5B6B7F)),
+                  const Icon(
+                    Icons.schedule_rounded,
+                    size: 16,
+                    color: Color(0xFF5B6B7F),
+                  ),
                   const SizedBox(width: 10),
                   Text(
                     '${dateFormat.format(now)}  ${timeFormat.format(now)}',
@@ -287,7 +456,10 @@ class _POSScreenState extends State<POSScreen> with SingleTickerProviderStateMix
             _build3DNeumorphicButton(
               icon: Icons.light_mode_rounded,
               onTap: () {
-                final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+                final themeProvider = Provider.of<ThemeProvider>(
+                  context,
+                  listen: false,
+                );
                 themeProvider.toggleTheme();
               },
               isAccent: true,
