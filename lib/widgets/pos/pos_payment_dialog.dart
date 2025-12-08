@@ -183,11 +183,12 @@ class _POSPaymentDialogState extends State<POSPaymentDialog> with SingleTickerPr
           runSpacing: 8,
           children: [
             _buildQuickAmountButton(total),
+            _buildQuickAmountButton(20),
+            _buildQuickAmountButton(50),
             _buildQuickAmountButton(100),
             _buildQuickAmountButton(200),
             _buildQuickAmountButton(500),
             _buildQuickAmountButton(1000),
-            _buildQuickAmountButton(2000),
           ],
         ),
         const SizedBox(height: 24),
@@ -362,17 +363,29 @@ class _POSPaymentDialogState extends State<POSPaymentDialog> with SingleTickerPr
                   _isProcessing = true;
                 });
                 
-                // Simulate processing
-                await Future.delayed(const Duration(seconds: 1));
-                
-                final transaction = posProvider.processPayment(
-                  _selectedMethod,
-                  _amountTendered,
-                );
-                
-                if (mounted) {
-                  Navigator.pop(context);
-                  _showSuccessDialog(context, transaction);
+                try {
+                  // Call backend checkout
+                  final orderId = await posProvider.checkout(
+                    _selectedMethod,
+                    _amountTendered,
+                  );
+                  
+                  if (mounted) {
+                    Navigator.pop(context);
+                    _showSuccessDialog(context, orderId);
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Checkout Failed: $e'), backgroundColor: Colors.red),
+                    );
+                  }
+                } finally {
+                  if (mounted) {
+                    setState(() {
+                      _isProcessing = false;
+                    });
+                  }
                 }
               },
         style: ElevatedButton.styleFrom(
@@ -411,7 +424,7 @@ class _POSPaymentDialogState extends State<POSPaymentDialog> with SingleTickerPr
     );
   }
 
-  void _showSuccessDialog(BuildContext context, Map<String, dynamic> transaction) {
+  void _showSuccessDialog(BuildContext context, String orderId) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -444,7 +457,7 @@ class _POSPaymentDialogState extends State<POSPaymentDialog> with SingleTickerPr
               ),
               const SizedBox(height: 8),
               Text(
-                'Transaction ID: ${transaction['transactionId']}',
+                'Order ID: $orderId',
                 style: TextStyle(
                   color: AppTheme.textSecondary,
                 ),

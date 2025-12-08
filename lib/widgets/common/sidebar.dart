@@ -25,17 +25,13 @@ class _SidebarState extends State<Sidebar> {
   int _selectedIndex = 0;
   Map<int, bool> _expandedItems = {};
 
-  final List<SidebarItem> _menuItems = [
+  List<SidebarItem> get _menuItems => [
     SidebarItem(
       title: 'Dashboard',
       icon: Icons.dashboard,
       route: '/dashboard',
     ),
-    SidebarItem(
-      title: 'Point of Sale',
-      icon: Icons.point_of_sale,
-      route: '/pos',
-    ),
+
     SidebarItem(
       title: 'Inventory',
       icon: Icons.inventory_2,

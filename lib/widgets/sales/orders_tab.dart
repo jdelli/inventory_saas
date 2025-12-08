@@ -303,12 +303,12 @@ class _OrdersTabState extends State<OrdersTab> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                order.customerName,
+                order.customerName ?? 'Unknown Customer',
                 style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
               ),
-              if (order.customerEmail.isNotEmpty)
+              if (order.customerEmail?.isNotEmpty ?? false)
                 Text(
-                  order.customerEmail,
+                  order.customerEmail!,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppTheme.textSecondary,
                     fontSize: 11,

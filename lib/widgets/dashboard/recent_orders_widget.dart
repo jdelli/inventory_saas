@@ -63,7 +63,7 @@ class RecentOrdersWidget extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            order.customerName,
+            order.customerName ?? 'Unknown Customer',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppTheme.textSecondary,
             ),

@@ -11,6 +11,7 @@ import 'package:inventory_saas/widgets/dashboard/recent_orders_widget.dart';
 import 'package:inventory_saas/widgets/dashboard/low_stock_widget.dart';
 import 'package:inventory_saas/widgets/dashboard/sales_chart_widget.dart';
 import 'package:inventory_saas/widgets/common/sidebar.dart';
+import 'package:inventory_saas/screens/pos/pos_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -107,6 +108,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           // User Menu
           Row(
             children: [
+              IconButton(
+                onPressed: () {
+                   Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const POSScreen()),
+                  );
+                },
+                icon: const Icon(Icons.point_of_sale),
+                tooltip: 'Point of Sale',
+              ),
+              const SizedBox(width: 8),
               IconButton(
                 onPressed: () {
                   // TODO: Show notifications

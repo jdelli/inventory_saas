@@ -15,10 +15,15 @@ class POSScreen extends StatefulWidget {
   State<POSScreen> createState() => _POSScreenState();
 }
 
-class _POSScreenState extends State<POSScreen> {
+class _POSScreenState extends State<POSScreen> with SingleTickerProviderStateMixin {
+  AnimationController? _controller;
+  Animation<double>? _tiltAnimation;
+
   @override
   void initState() {
     super.initState();
+    _ensureAnimationsInitialized();
+    
     // Load products if not already loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final inventoryProvider = Provider.of<InventoryProvider>(context, listen: false);
@@ -28,39 +33,103 @@ class _POSScreenState extends State<POSScreen> {
     });
   }
 
+  void _ensureAnimationsInitialized() {
+    if (_controller != null) return;
+    
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _tiltAnimation = Tween<double>(begin: 0.1, end: 0.02).animate(
+      CurvedAnimation(parent: _controller!, curve: Curves.easeOutBack),
+    );
+    _controller!.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Listen to theme changes
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return ChangeNotifierProvider(
       create: (_) => POSProvider(),
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: Column(
-          children: [
-            // Top Bar
-            _buildTopBar(),
-            
-            // Main Content
-            Expanded(
-              child: Row(
-                children: [
-                  // Product Grid - 65%
-                  Expanded(
-                    flex: 65,
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      child: const POSProductGrid(),
-                    ),
-                  ),
-                  
-                  // Cart Panel - 35%
-                  const Expanded(
-                    flex: 35,
-                    child: POSCartPanel(),
-                  ),
-                ],
-              ),
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: const Alignment(-0.3, -0.3),
+              radius: 1.5,
+              colors: isDark 
+                ? [
+                    const Color(0xFF2C3E50), // Slate Blue
+                    const Color(0xFF1a252f), // Darker slate
+                    const Color(0xFF0F172A), // Deep Navy
+                  ]
+                : [
+                    const Color(0xFFF0F9FF), // Light Sky
+                    const Color(0xFFE0F2FE), // Pale Blue
+                    const Color(0xFFF1F5F9), // Light Grey
+                  ],
+              stops: const [0.0, 0.5, 1.0],
             ),
-          ],
+          ),
+          child: Column(
+            children: [
+              // Top Bar
+              _buildTopBar(),
+
+              // Main Workspace
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Product Grid Area
+                    Expanded(
+                      flex: 65,
+                      child: Container(
+                       // Transparent container to let products float on background
+                        padding: const EdgeInsets.only(left: 20, top: 10, bottom: 20, right: 10),
+                        child: const POSProductGrid(),
+                      ),
+                    ),
+                    
+                    // Cart Panel Area (Floating Glass Effect)
+                    Expanded(
+                      flex: 35,
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 10, bottom: 20, right: 20, left: 10),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor.withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 30,
+                              offset: const Offset(-5, 10),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                            width: 1,
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: const POSCartPanel(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -72,41 +141,64 @@ class _POSScreenState extends State<POSScreen> {
     final timeFormat = DateFormat('hh:mm a');
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1))),
+        color: Theme.of(context).cardColor.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 5),
+          ),
+        ],
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Row(
         children: [
           // Back Button
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back),
-            color: AppTheme.textPrimary,
-            tooltip: 'Back to Dashboard',
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.arrow_back),
+              color: AppTheme.textPrimary,
+              tooltip: 'Back to Dashboard',
+            ),
           ),
           const SizedBox(width: 20),
           
           // POS Title
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(6),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                 BoxShadow(
+                  color: const Color(0xFF4F46E5).withOpacity(0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.point_of_sale, color: AppTheme.primaryColor, size: 18),
-                const SizedBox(width: 8),
+                const Icon(Icons.point_of_sale, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
                 Text(
-                  'Point of Sale',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppTheme.primaryColor,
+                  'Counter POS',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
                     fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ],
@@ -117,26 +209,27 @@ class _POSScreenState extends State<POSScreen> {
           
           // Date & Time
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(30),
             ),
             child: Row(
               children: [
-                Icon(Icons.access_time, size: 16, color: AppTheme.textSecondary),
-                const SizedBox(width: 8),
+                Icon(Icons.access_time, size: 18, color: AppTheme.primaryColor),
+                const SizedBox(width: 10),
                 Text(
-                  '${dateFormat.format(now)} • ${timeFormat.format(now)}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  '${dateFormat.format(now)}   ${timeFormat.format(now)}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppTheme.textPrimary,
+                    fontFamily: 'RobotoMono', // Monospace for numbers looks cool if available, else fallback
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           
           // Actions
           Row(
@@ -151,22 +244,42 @@ class _POSScreenState extends State<POSScreen> {
                     themeProvider.themeMode == ThemeMode.light
                         ? Icons.dark_mode_outlined
                         : Icons.light_mode_outlined,
-                    size: 20,
+                    size: 24,
                   ),
                 ),
                 tooltip: 'Toggle Theme',
               ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.fullscreen, size: 20),
-                tooltip: 'Fullscreen',
-              ),
-              const SizedBox(width: 16),
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: AppTheme.primaryColor,
-                child: const Text('C1', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+              const SizedBox(width: 12),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.primaryColor,
+                      AppTheme.primaryColor.withOpacity(0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: const Text(
+                  'C1', 
+                  style: TextStyle(
+                    color: Colors.white, 
+                    fontSize: 14, 
+                    fontWeight: FontWeight.bold
+                  )
+                ),
               ),
             ],
           ),
