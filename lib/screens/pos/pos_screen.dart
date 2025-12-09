@@ -90,97 +90,157 @@ class _POSScreenState extends State<POSScreen>
                       Expanded(
                         child: Row(
                           children: [
-                            // Product Grid - Left Panel
+                            // Product Grid - Left Panel (3D Effect)
                             Expanded(
                               flex: 68,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: isDark
-                                        ? [
-                                            const Color(0xFF121A2B),
-                                            const Color(0xFF0E1424),
-                                          ]
-                                        : [
-                                            Colors.white,
-                                            const Color(0xFFF7FAFF),
-                                          ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(22),
-                                  border: Border.all(
-                                    color: isDark
-                                        ? Colors.white.withOpacity(0.08)
-                                        : const Color(0xFFE2E8F0),
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: isDark
-                                          ? Colors.black.withOpacity(0.45)
-                                          : const Color(0xFF1F2937).withOpacity(0.08),
-                                      blurRadius: 34,
-                                      offset: const Offset(0, 14),
-                                      spreadRadius: -6,
+                              child: Transform(
+                                transform: Matrix4.identity()
+                                  ..setEntry(3, 2, 0.001) // Perspective
+                                  ..rotateY(-0.01) // Slight Y rotation
+                                  ..rotateX(0.005), // Slight X rotation
+                                alignment: FractionalOffset.center,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: isDark
+                                          ? [
+                                              const Color(0xFF1A2332),
+                                              const Color(0xFF0F1625),
+                                              const Color(0xFF0A0F1C),
+                                            ]
+                                          : [
+                                              const Color(0xFFFFFFFF),
+                                              const Color(0xFFF8FBFF),
+                                              const Color(0xFFF2F6FA),
+                                            ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      stops: const [0.0, 0.5, 1.0],
                                     ),
-                                    BoxShadow(
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(
+                                      width: 2,
                                       color: isDark
-                                          ? Colors.black.withOpacity(0.35)
-                                          : const Color(0xFF1E293B).withOpacity(0.06),
-                                      blurRadius: 18,
-                                      offset: const Offset(0, 6),
+                                          ? Colors.white.withOpacity(0.12)
+                                          : const Color(0xFFE2E8F0),
                                     ),
-                                  ],
+                                    boxShadow: [
+                                      // Primary depth shadow
+                                      BoxShadow(
+                                        color: isDark
+                                            ? Colors.black.withOpacity(0.6)
+                                            : const Color(0xFF1F2937).withOpacity(0.15),
+                                        blurRadius: 48,
+                                        offset: const Offset(-8, 24),
+                                        spreadRadius: -2,
+                                      ),
+                                      // Mid shadow
+                                      BoxShadow(
+                                        color: isDark
+                                            ? Colors.black.withOpacity(0.5)
+                                            : const Color(0xFF1E293B).withOpacity(0.1),
+                                        blurRadius: 28,
+                                        offset: const Offset(-4, 12),
+                                      ),
+                                      // Ambient shadow
+                                      BoxShadow(
+                                        color: isDark
+                                            ? Colors.black.withOpacity(0.4)
+                                            : const Color(0xFF64748B).withOpacity(0.08),
+                                        blurRadius: 16,
+                                        offset: const Offset(-2, 6),
+                                      ),
+                                      // Inner highlight
+                                      BoxShadow(
+                                        color: isDark
+                                            ? Colors.white.withOpacity(0.03)
+                                            : Colors.white.withOpacity(0.8),
+                                        blurRadius: 12,
+                                        offset: const Offset(2, -2),
+                                        spreadRadius: -4,
+                                      ),
+                                    ],
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: const POSProductGrid(),
                                 ),
-                                clipBehavior: Clip.antiAlias,
-                                child: const POSProductGrid(),
                               ),
                             ),
                             const SizedBox(width: 16),
-                            // Cart Panel - Right Panel
+                            // Cart Panel - Right Panel (3D Glass Effect)
                             Expanded(
                               flex: 32,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: isDark
-                                        ? [
-                                            const Color(0xFF121A2B),
-                                            const Color(0xFF0D1526),
-                                          ]
-                                        : [
-                                            Colors.white,
-                                            const Color(0xFFF7F9FD),
-                                          ],
-                                    begin: Alignment.topRight,
-                                    end: Alignment.bottomLeft,
-                                  ),
-                                  borderRadius: BorderRadius.circular(22),
-                                  border: Border.all(
-                                    color: isDark
-                                        ? Colors.white.withOpacity(0.08)
-                                        : const Color(0xFFE2E8F0),
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: isDark
-                                          ? Colors.black.withOpacity(0.45)
-                                          : const Color(0xFF1F2937).withOpacity(0.1),
-                                      blurRadius: 34,
-                                      offset: const Offset(0, 14),
-                                      spreadRadius: -6,
+                              child: Transform(
+                                transform: Matrix4.identity()
+                                  ..setEntry(3, 2, 0.001) // Perspective
+                                  ..rotateY(0.01) // Slight Y rotation (opposite direction)
+                                  ..rotateX(0.005), // Slight X rotation
+                                alignment: FractionalOffset.center,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: isDark
+                                          ? [
+                                              const Color(0xFF1C2638).withOpacity(0.95),
+                                              const Color(0xFF151D30).withOpacity(0.95),
+                                              const Color(0xFF0D1423).withOpacity(0.95),
+                                            ]
+                                          : [
+                                              Colors.white.withOpacity(0.98),
+                                              const Color(0xFFF9FBFE).withOpacity(0.98),
+                                              const Color(0xFFF3F7FB).withOpacity(0.98),
+                                            ],
+                                      begin: Alignment.topRight,
+                                      end: Alignment.bottomLeft,
+                                      stops: const [0.0, 0.5, 1.0],
                                     ),
-                                    BoxShadow(
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(
+                                      width: 2,
                                       color: isDark
-                                          ? Colors.black.withOpacity(0.35)
-                                          : const Color(0xFF1E293B).withOpacity(0.06),
-                                      blurRadius: 18,
-                                      offset: const Offset(0, 6),
+                                          ? Colors.white.withOpacity(0.15)
+                                          : Colors.white.withOpacity(0.9),
                                     ),
-                                  ],
+                                    boxShadow: [
+                                      // Primary depth shadow
+                                      BoxShadow(
+                                        color: isDark
+                                            ? Colors.black.withOpacity(0.65)
+                                            : const Color(0xFF1F2937).withOpacity(0.18),
+                                        blurRadius: 52,
+                                        offset: const Offset(8, 26),
+                                        spreadRadius: -2,
+                                      ),
+                                      // Mid shadow
+                                      BoxShadow(
+                                        color: isDark
+                                            ? Colors.black.withOpacity(0.55)
+                                            : const Color(0xFF1E293B).withOpacity(0.12),
+                                        blurRadius: 32,
+                                        offset: const Offset(4, 14),
+                                      ),
+                                      // Ambient shadow
+                                      BoxShadow(
+                                        color: isDark
+                                            ? Colors.black.withOpacity(0.45)
+                                            : const Color(0xFF64748B).withOpacity(0.1),
+                                        blurRadius: 18,
+                                        offset: const Offset(2, 8),
+                                      ),
+                                      // Glass reflection highlight
+                                      BoxShadow(
+                                        color: isDark
+                                            ? Colors.white.withOpacity(0.05)
+                                            : Colors.white,
+                                        blurRadius: 16,
+                                        offset: const Offset(-2, -3),
+                                        spreadRadius: -6,
+                                      ),
+                                    ],
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: const POSCartPanel(),
                                 ),
-                                clipBehavior: Clip.antiAlias,
-                                child: const POSCartPanel(),
                               ),
                             ),
                           ],
@@ -205,40 +265,75 @@ class _POSScreenState extends State<POSScreen>
     final timeFormat = DateFormat('hh:mm:ss a');
     final currencyFormat = NumberFormat.currency(symbol: '₱', decimalDigits: 2);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? [const Color(0xFF121A2B), const Color(0xFF0F1828)]
-              : [Colors.white, const Color(0xFFF7FAFF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withOpacity(0.06)
-              : const Color(0xFFE2E8F0),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withOpacity(0.4)
-                : const Color(0xFF64748B).withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-            spreadRadius: -2,
+    return Transform(
+      transform: Matrix4.identity()
+        ..setEntry(3, 2, 0.001)
+        ..rotateX(-0.005), // Slight tilt for depth
+      alignment: FractionalOffset.center,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDark
+                ? [
+                    const Color(0xFF1A2435),
+                    const Color(0xFF141D2E),
+                    const Color(0xFF0F1625),
+                  ]
+                : [
+                    Colors.white,
+                    const Color(0xFFFAFCFF),
+                    const Color(0xFFF5F8FB),
+                  ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: const [0.0, 0.5, 1.0],
           ),
-          BoxShadow(
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            width: 2,
             color: isDark
-                ? Colors.black.withOpacity(0.3)
-                : const Color(0xFF64748B).withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+                ? Colors.white.withOpacity(0.12)
+                : const Color(0xFFE8ECF1),
           ),
-        ],
-      ),
+          boxShadow: [
+            // Top bevel highlight
+            BoxShadow(
+              color: isDark
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.white.withOpacity(0.95),
+              offset: const Offset(0, -1),
+              blurRadius: 3,
+              spreadRadius: 0,
+            ),
+            // Main depth shadow
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withOpacity(0.55)
+                  : const Color(0xFF64748B).withOpacity(0.12),
+              blurRadius: 24,
+              offset: const Offset(0, 10),
+              spreadRadius: -2,
+            ),
+            // Mid shadow for layering
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withOpacity(0.45)
+                  : const Color(0xFF64748B).withOpacity(0.08),
+              blurRadius: 14,
+              offset: const Offset(0, 5),
+              spreadRadius: -1,
+            ),
+            // Bottom edge for bevel
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withOpacity(0.7)
+                  : const Color(0xFF94A3B8).withOpacity(0.18),
+              offset: const Offset(0, 1),
+              blurRadius: 0,
+            ),
+          ],
+        ),
       child: Row(
         children: [
           // Back Button
@@ -508,6 +603,7 @@ class _POSScreenState extends State<POSScreen>
             ),
           ),
         ],
+      ),
       ),
     );
   }

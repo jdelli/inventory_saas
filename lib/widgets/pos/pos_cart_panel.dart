@@ -1379,65 +1379,141 @@ class _POSCartPanelState extends State<POSCartPanel>
     final isAction = value == '⌫';
     final isDecimal = value == '.';
 
-    return Material(
-      color: isAction
-          ? (isDark
-              ? Colors.white.withOpacity(0.04)
-              : const Color(0xFFF1F5F9))
-          : (isDark
-              ? Colors.white.withOpacity(0.06)
-              : Colors.white),
-      borderRadius: BorderRadius.circular(12),
-      elevation: isAction ? 0 : (isDark ? 2 : 4),
-      shadowColor: isDark ? Colors.black : const Color(0xFF64748B).withOpacity(0.15),
-      child: InkWell(
-        onTap: () => _onNumpadTap(value),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: isAction
-                ? null
-                : Border.all(
-                    color: isDark
-                        ? Colors.white.withOpacity(0.08)
-                        : const Color(0xFFE2E8F0),
-                  ),
-            boxShadow: isAction
-                ? null
-                : [
-                    BoxShadow(
-                      color: isDark
-                          ? Colors.black.withOpacity(0.3)
-                          : const Color(0xFF64748B).withOpacity(0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                      spreadRadius: -1,
-                    ),
-                  ],
+    return Transform(
+      transform: Matrix4.identity()
+        ..setEntry(3, 2, 0.002) // More pronounced perspective for buttons
+        ..translate(0.0, 0.0, isAction ? -2.0 : 8.0), // 3D depth
+      alignment: FractionalOffset.center,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: LinearGradient(
+            colors: isAction
+                ? (isDark
+                    ? [
+                        Colors.white.withOpacity(0.06),
+                        Colors.white.withOpacity(0.03),
+                      ]
+                    : [
+                        const Color(0xFFF5F7FA),
+                        const Color(0xFFE8EBF0),
+                      ])
+                : (isDark
+                    ? [
+                        const Color(0xFF1E2838),
+                        const Color(0xFF151D2C),
+                      ]
+                    : [
+                        const Color(0xFFFFFFFF),
+                        const Color(0xFFF8FAFC),
+                      ]),
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          child: Center(
-            child: value == '⌫'
-                ? Icon(
-                    Icons.backspace_outlined,
-                    size: 22,
-                    color: isDark ? Colors.white54 : const Color(0xFF64748B),
-                  )
-                : Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: isDecimal ? 36 : 22,
-                      fontWeight: FontWeight.w700,
-                      height: isDecimal ? 0.5 : 1.0,
-                      color: isAction
-                          ? (isDark
-                              ? Colors.white54
-                              : const Color(0xFF64748B))
-                          : (isDark
-                              ? Colors.white
-                              : const Color(0xFF1E293B)),
-                    ),
-                  ),
+          border: Border.all(
+            width: isAction ? 1 : 2,
+            color: isAction
+                ? (isDark
+                    ? Colors.white.withOpacity(0.06)
+                    : const Color(0xFFDCE1E8))
+                : (isDark
+                    ? Colors.white.withOpacity(0.12)
+                    : const Color(0xFFE2E8F0)),
+          ),
+          boxShadow: [
+            // Top highlight (makes it look raised)
+            BoxShadow(
+              color: isDark
+                  ? Colors.white.withOpacity(0.04)
+                  : Colors.white.withOpacity(0.9),
+              offset: const Offset(0, -1),
+              blurRadius: 2,
+              spreadRadius: 0,
+            ),
+            // Main depth shadow
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withOpacity(0.5)
+                  : const Color(0xFF64748B).withOpacity(0.15),
+              offset: const Offset(0, 6),
+              blurRadius: 12,
+              spreadRadius: -2,
+            ),
+            // Secondary shadow for depth
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withOpacity(0.4)
+                  : const Color(0xFF64748B).withOpacity(0.08),
+              offset: const Offset(0, 3),
+              blurRadius: 6,
+              spreadRadius: -1,
+            ),
+            // Bottom edge shadow (bevel effect)
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withOpacity(0.6)
+                  : const Color(0xFF94A3B8).withOpacity(0.2),
+              offset: const Offset(0, 1),
+              blurRadius: 0,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            onTap: () => _onNumpadTap(value),
+            borderRadius: BorderRadius.circular(14),
+            splashColor: colorScheme.primary.withOpacity(0.15),
+            highlightColor: colorScheme.primary.withOpacity(0.08),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                // Inner shadow for pressed effect
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.black.withOpacity(0.03),
+                    Colors.transparent,
+                    Colors.white.withOpacity(0.03),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: Center(
+                child: value == '⌫'
+                    ? Icon(
+                        Icons.backspace_outlined,
+                        size: 22,
+                        color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                      )
+                    : Text(
+                        value,
+                        style: TextStyle(
+                          fontSize: isDecimal ? 36 : 24,
+                          fontWeight: FontWeight.w800,
+                          height: isDecimal ? 0.5 : 1.0,
+                          color: isAction
+                              ? (isDark
+                                  ? Colors.white60
+                                  : const Color(0xFF64748B))
+                              : (isDark
+                                  ? Colors.white
+                                  : const Color(0xFF1E293B)),
+                          shadows: [
+                            Shadow(
+                              color: isDark
+                                  ? Colors.black.withOpacity(0.3)
+                                  : Colors.white.withOpacity(0.8),
+                              offset: const Offset(0, 1),
+                              blurRadius: 2,
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
+            ),
           ),
         ),
       ),
