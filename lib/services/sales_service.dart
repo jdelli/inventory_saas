@@ -132,4 +132,48 @@ class SalesService {
       throw Exception('Failed to search customers: $e');
     }
   }
+
+  // Get today's sales statistics
+  Future<Map<String, dynamic>> getTodayStats() async {
+    final supabase = _supabase;
+    if (supabase == null) {
+      return {'totalSales': 0.0, 'totalCustomers': 0, 'orderCount': 0};
+    }
+
+    try {
+      final now = DateTime.now();
+      final startOfDay = DateTime(now.year, now.month, now.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      // Fetch today's orders
+      final response = await supabase
+          .from('sales_orders')
+          .select('total_amount, customer_id')
+          .gte('created_at', startOfDay.toIso8601String())
+          .lt('created_at', endOfDay.toIso8601String())
+          .eq('payment_status', 'paid');
+
+      final orders = response as List;
+      
+      double totalSales = 0.0;
+      final Set<String> uniqueCustomers = {};
+      
+      for (final order in orders) {
+        totalSales += (order['total_amount'] as num?)?.toDouble() ?? 0.0;
+        final customerId = order['customer_id'] as String?;
+        if (customerId != null && customerId.isNotEmpty) {
+          uniqueCustomers.add(customerId);
+        }
+      }
+
+      return {
+        'totalSales': totalSales,
+        'totalCustomers': uniqueCustomers.length,
+        'orderCount': orders.length,
+      };
+    } catch (e) {
+      print('❌ SalesService: Failed to fetch today stats: $e');
+      return {'totalSales': 0.0, 'totalCustomers': 0, 'orderCount': 0};
+    }
+  }
 }

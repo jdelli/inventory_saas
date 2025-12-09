@@ -136,6 +136,14 @@ class _POSCartPanelState extends State<POSCartPanel>
         border: Border.all(
           color: colorScheme.primary.withOpacity(0.2),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withOpacity(isDark ? 0.28 : 0.16),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
+            spreadRadius: -10,
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -519,9 +527,13 @@ class _POSCartPanelState extends State<POSCartPanel>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withOpacity(0.04)
-            : const Color(0xFFF8FAFC),
+        gradient: LinearGradient(
+          colors: isDark
+              ? [Colors.white.withOpacity(0.05), Colors.white.withOpacity(0.02)]
+              : [Colors.white, const Color(0xFFF6F9FF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDark
@@ -531,18 +543,18 @@ class _POSCartPanelState extends State<POSCartPanel>
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withOpacity(0.3)
-                : const Color(0xFF64748B).withOpacity(0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-            spreadRadius: -2,
+                ? Colors.black.withOpacity(0.32)
+                : const Color(0xFF1E293B).withOpacity(0.08),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
+            spreadRadius: -8,
           ),
           BoxShadow(
             color: isDark
-                ? Colors.black.withOpacity(0.2)
-                : const Color(0xFF64748B).withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+                ? Colors.black.withOpacity(0.22)
+                : const Color(0xFF64748B).withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -695,75 +707,87 @@ class _POSCartPanelState extends State<POSCartPanel>
     final colorScheme = Theme.of(context).colorScheme;
     final isDisabled = onPressed == null;
 
-    Color backgroundColor;
+    final radius = BorderRadius.circular(14);
     Color foregroundColor;
+    BoxDecoration decoration;
 
     if (isPrimary) {
-      backgroundColor = isDisabled
-          ? colorScheme.primary.withOpacity(0.3)
-          : colorScheme.primary;
-      foregroundColor = Colors.white;
+      decoration = BoxDecoration(
+        borderRadius: radius,
+        gradient: LinearGradient(
+          colors: isDisabled
+              ? [
+                  colorScheme.primary.withOpacity(0.35),
+                  colorScheme.primary.withOpacity(0.25),
+                ]
+              : [
+                  colorScheme.primary,
+                  colorScheme.primary.withOpacity(0.82),
+                ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: isDisabled
+            ? null
+            : [
+                BoxShadow(
+                  color: colorScheme.primary.withOpacity(0.4),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                  spreadRadius: -6,
+                ),
+              ],
+      );
+      foregroundColor = Colors.white.withOpacity(isDisabled ? 0.78 : 1);
     } else if (isSecondary) {
-      backgroundColor = isDark
-          ? Colors.white.withOpacity(isDisabled ? 0.03 : 0.08)
-          : isDisabled
-              ? const Color(0xFFF1F5F9)
-              : Colors.white;
+      decoration = BoxDecoration(
+        borderRadius: radius,
+        color: isDark
+            ? Colors.white.withOpacity(isDisabled ? 0.04 : 0.08)
+            : Colors.white,
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withOpacity(0.1)
+              : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.18)
+                : const Color(0xFF94A3B8).withOpacity(0.14),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+            spreadRadius: -6,
+          ),
+        ],
+      );
       foregroundColor = isDisabled
-          ? (isDark ? Colors.white24 : const Color(0xFFCBD5E1))
-          : (isDark ? Colors.white70 : const Color(0xFF475569));
+          ? (isDark ? Colors.white30 : const Color(0xFFCBD5E1))
+          : (isDark ? Colors.white : const Color(0xFF0F172A));
     } else {
-      backgroundColor = Colors.transparent;
+      decoration = BoxDecoration(
+        borderRadius: radius,
+        color: isDark
+            ? Colors.white.withOpacity(0.04)
+            : const Color(0xFFF1F5F9),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withOpacity(0.08)
+              : const Color(0xFFE2E8F0),
+        ),
+      );
       foregroundColor = isDark ? Colors.white70 : const Color(0xFF475569);
     }
 
     return Material(
-      color: backgroundColor,
-      borderRadius: BorderRadius.circular(14),
-      elevation: isPrimary && !isDisabled ? 6 : 0,
-      shadowColor: isPrimary ? colorScheme.primary.withOpacity(0.4) : null,
+      color: Colors.transparent,
+      borderRadius: radius,
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: radius,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: isSecondary && !isDisabled
-              ? BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withOpacity(0.1)
-                        : const Color(0xFFE2E8F0),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isDark
-                          ? Colors.black.withOpacity(0.2)
-                          : const Color(0xFF64748B).withOpacity(0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                      spreadRadius: -1,
-                    ),
-                  ],
-                )
-              : isPrimary && !isDisabled
-                  ? BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: colorScheme.primary.withOpacity(0.4),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                          spreadRadius: -2,
-                        ),
-                        BoxShadow(
-                          color: colorScheme.primary.withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    )
-                  : null,
+          decoration: decoration,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -773,8 +797,9 @@ class _POSCartPanelState extends State<POSCartPanel>
                 label,
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: foregroundColor,
+                  letterSpacing: 0.2,
                 ),
               ),
             ],
@@ -867,9 +892,13 @@ class _POSCartPanelState extends State<POSCartPanel>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withOpacity(0.04)
-            : const Color(0xFFF8FAFC),
+        gradient: LinearGradient(
+          colors: isDark
+              ? [Colors.white.withOpacity(0.05), Colors.white.withOpacity(0.02)]
+              : [Colors.white, const Color(0xFFF6FAFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark
@@ -879,11 +908,11 @@ class _POSCartPanelState extends State<POSCartPanel>
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withOpacity(0.3)
-                : const Color(0xFF64748B).withOpacity(0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-            spreadRadius: -2,
+                ? Colors.black.withOpacity(0.32)
+                : const Color(0xFF1E293B).withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+            spreadRadius: -8,
           ),
         ],
       ),
@@ -1024,9 +1053,7 @@ class _POSCartPanelState extends State<POSCartPanel>
     final colorScheme = Theme.of(context).colorScheme;
 
     return Material(
-      color: isSelected
-          ? colorScheme.primary
-          : Colors.transparent,
+      color: Colors.transparent,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: () {
@@ -1036,6 +1063,39 @@ class _POSCartPanelState extends State<POSCartPanel>
         borderRadius: BorderRadius.circular(10),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            gradient: isSelected
+                ? LinearGradient(
+                    colors: [
+                      colorScheme.primary,
+                      colorScheme.primary.withOpacity(0.82),
+                    ],
+                  )
+                : null,
+            color: isSelected
+                ? null
+                : (isDark
+                    ? Colors.white.withOpacity(0.04)
+                    : const Color(0xFFF1F5F9)),
+            border: Border.all(
+              color: isSelected
+                  ? Colors.transparent
+                  : (isDark
+                      ? Colors.white.withOpacity(0.08)
+                      : const Color(0xFFE2E8F0)),
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: colorScheme.primary.withOpacity(0.35),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
+                      spreadRadius: -6,
+                    ),
+                  ]
+                : null,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1045,20 +1105,20 @@ class _POSCartPanelState extends State<POSCartPanel>
                 color: isSelected
                     ? Colors.white
                     : isDark
-                        ? Colors.white54
-                        : const Color(0xFF64748B),
+                        ? Colors.white60
+                        : const Color(0xFF475569),
               ),
               const SizedBox(height: 4),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   color: isSelected
                       ? Colors.white
                       : isDark
-                          ? Colors.white54
-                          : const Color(0xFF64748B),
+                          ? Colors.white60
+                          : const Color(0xFF475569),
                 ),
               ),
             ],
@@ -1121,15 +1181,29 @@ class _POSCartPanelState extends State<POSCartPanel>
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withOpacity(0.04)
-                : const Color(0xFFF8FAFC),
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [Colors.white.withOpacity(0.05), Colors.white.withOpacity(0.02)]
+                  : [Colors.white, const Color(0xFFF5F8FF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isDark
                   ? Colors.white.withOpacity(0.08)
                   : const Color(0xFFE2E8F0),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withOpacity(0.28)
+                    : const Color(0xFF1E293B).withOpacity(0.07),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+                spreadRadius: -8,
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1256,7 +1330,7 @@ class _POSCartPanelState extends State<POSCartPanel>
         Row(
           children: [total, 500.0, 1000.0, 2000.0].map((amt) {
             final isExact = amt == total;
-            final isSelected = _amountString == amt.toStringAsFixed(0);
+            final isSelected = _amountString == amt.toStringAsFixed(2);
 
             return Expanded(
               child: Padding(
@@ -1271,13 +1345,13 @@ class _POSCartPanelState extends State<POSCartPanel>
                   child: InkWell(
                     onTap: () {
                       HapticFeedback.selectionClick();
-                      setState(() => _amountString = amt.toStringAsFixed(0));
+                      setState(() => _amountString = amt.toStringAsFixed(2));
                     },
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: Text(
-                        isExact ? 'Exact' : '₱${amt.toInt()}',
+                        isExact ? 'Exact' : '₱${amt.toStringAsFixed(2)}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 13,

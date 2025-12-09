@@ -238,7 +238,7 @@ class _POSPaymentDialogState extends State<POSPaymentDialog> with SingleTickerPr
       onPressed: () {
         setState(() {
           _amountTendered = amount;
-          _amountController.text = amount.toStringAsFixed(0);
+          _amountController.text = amount.toStringAsFixed(2);
         });
       },
       style: OutlinedButton.styleFrom(
@@ -252,7 +252,7 @@ class _POSPaymentDialogState extends State<POSPaymentDialog> with SingleTickerPr
         ),
       ),
       child: Text(
-        isExact ? 'Exact' : '₱${amount.toStringAsFixed(0)}',
+        isExact ? 'Exact' : '₱${amount.toStringAsFixed(2)}',
         style: TextStyle(
           fontWeight: FontWeight.w600,
           color: isExact ? AppTheme.successColor : AppTheme.primaryColor,

@@ -58,8 +58,16 @@ class _POSProductGridState extends State<POSProductGrid> {
           return matchesSearch && matchesCategory && product.isActive;
         }).toList();
 
-        return ColoredBox(
-          color: isDark ? const Color(0xFF151D2E) : Colors.white,
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [const Color(0xFF141B2F), const Color(0xFF0F1526)]
+                  : [const Color(0xFFFDFEFF), const Color(0xFFF2F6FF)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
           child: Column(
             children: [
               // Search & Filter Bar
@@ -76,7 +84,7 @@ class _POSProductGridState extends State<POSProductGrid> {
 
               // Category Chips
               SizedBox(
-                height: 44,
+                height: 46,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -114,23 +122,39 @@ class _POSProductGridState extends State<POSProductGrid> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
+                        horizontal: 12,
+                        vertical: 6,
                       ),
                       decoration: BoxDecoration(
                         color: isDark
                             ? Colors.white.withOpacity(0.05)
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withOpacity(0.08)
+                              : const Color(0xFFE2E8F0),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: isDark
+                                ? Colors.black.withOpacity(0.25)
+                                : const Color(0xFF94A3B8).withOpacity(0.2),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                            spreadRadius: -6,
+                          ),
+                        ],
                       ),
                       child: Text(
                         '${filteredProducts.length} products',
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                           color: isDark
-                              ? Colors.white60
-                              : const Color(0xFF64748B),
+                              ? Colors.white70
+                              : const Color(0xFF475569),
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ),
@@ -156,8 +180,8 @@ class _POSProductGridState extends State<POSProductGrid> {
                           style: TextStyle(
                             fontSize: 12,
                             color: isDark
-                                ? Colors.white60
-                                : const Color(0xFF64748B),
+                                ? Colors.white70
+                                : const Color(0xFF475569),
                           ),
                         ),
                         style: TextButton.styleFrom(
@@ -190,9 +214,11 @@ class _POSProductGridState extends State<POSProductGrid> {
   Widget _buildSearchBar(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withOpacity(0.04)
-            : const Color(0xFFF8FAFC),
+        gradient: LinearGradient(
+          colors: isDark
+              ? [Colors.white.withOpacity(0.06), Colors.white.withOpacity(0.03)]
+              : [Colors.white, const Color(0xFFF4F8FF)],
+        ),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: _searchFocus.hasFocus
@@ -202,6 +228,16 @@ class _POSProductGridState extends State<POSProductGrid> {
                   : const Color(0xFFE2E8F0),
           width: _searchFocus.hasFocus ? 2 : 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.25)
+                : const Color(0xFF94A3B8).withOpacity(0.2),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+            spreadRadius: -8,
+          ),
+        ],
       ),
       child: TextField(
         controller: _searchController,
@@ -250,7 +286,7 @@ class _POSProductGridState extends State<POSProductGrid> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Material(
-      color: colorScheme.primary,
+      color: Colors.transparent,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: () {
@@ -259,20 +295,40 @@ class _POSProductGridState extends State<POSProductGrid> {
         borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                colorScheme.primary,
+                colorScheme.primary.withOpacity(0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.primary.withOpacity(0.35),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+                spreadRadius: -6,
+              ),
+            ],
+          ),
           child: Row(
-            children: [
-              const Icon(
+            children: const [
+              Icon(
                 Icons.tune_rounded,
                 size: 18,
                 color: Colors.white,
               ),
-              const SizedBox(width: 8),
-              const Text(
+              SizedBox(width: 8),
+              Text(
                 'Filters',
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: Colors.white,
+                  letterSpacing: 0.1,
                 ),
               ),
             ],
@@ -291,7 +347,7 @@ class _POSProductGridState extends State<POSProductGrid> {
   }) {
     return Material(
       color: isSelected
-          ? color.withOpacity(isDark ? 0.25 : 0.12)
+          ? color.withOpacity(isDark ? 0.28 : 0.16)
           : isDark
               ? Colors.white.withOpacity(0.04)
               : const Color(0xFFF8FAFC),
@@ -309,12 +365,22 @@ class _POSProductGridState extends State<POSProductGrid> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected
-                  ? color.withOpacity(0.5)
+                  ? color.withOpacity(0.65)
                   : isDark
                       ? Colors.white.withOpacity(0.08)
                       : const Color(0xFFE2E8F0),
               width: isSelected ? 1.5 : 1,
             ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: color.withOpacity(0.28),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                      spreadRadius: -6,
+                    ),
+                  ]
+                : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,

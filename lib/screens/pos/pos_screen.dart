@@ -67,107 +67,131 @@ class _POSScreenState extends State<POSScreen>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return ChangeNotifierProvider(
       create: (_) => POSProvider(),
       child: Scaffold(
-        backgroundColor: isDark
-            ? const Color(0xFF0C1222)
-            : const Color(0xFFF1F5F9),
-        body: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation ?? const AlwaysStoppedAnimation(1.0),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildTopBar(context),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        // Product Grid - Left Panel
-                        Expanded(
-                          flex: 68,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF151D2E)
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isDark
-                                    ? Colors.white.withOpacity(0.06)
-                                    : const Color(0xFFE2E8F0),
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            Positioned.fill(child: _buildBackground(isDark, colorScheme)),
+            SafeArea(
+              child: FadeTransition(
+                opacity: _fadeAnimation ?? const AlwaysStoppedAnimation(1.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildTopBar(context),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            // Product Grid - Left Panel
+                            Expanded(
+                              flex: 68,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: isDark
+                                        ? [
+                                            const Color(0xFF121A2B),
+                                            const Color(0xFF0E1424),
+                                          ]
+                                        : [
+                                            Colors.white,
+                                            const Color(0xFFF7FAFF),
+                                          ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(22),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white.withOpacity(0.08)
+                                        : const Color(0xFFE2E8F0),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isDark
+                                          ? Colors.black.withOpacity(0.45)
+                                          : const Color(0xFF1F2937).withOpacity(0.08),
+                                      blurRadius: 34,
+                                      offset: const Offset(0, 14),
+                                      spreadRadius: -6,
+                                    ),
+                                    BoxShadow(
+                                      color: isDark
+                                          ? Colors.black.withOpacity(0.35)
+                                          : const Color(0xFF1E293B).withOpacity(0.06),
+                                      blurRadius: 18,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: const POSProductGrid(),
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: isDark
-                                      ? Colors.black.withOpacity(0.5)
-                                      : const Color(0xFF64748B).withOpacity(0.1),
-                                  blurRadius: 32,
-                                  offset: const Offset(0, 12),
-                                  spreadRadius: -4,
-                                ),
-                                BoxShadow(
-                                  color: isDark
-                                      ? Colors.black.withOpacity(0.3)
-                                      : const Color(0xFF64748B).withOpacity(0.05),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
                             ),
-                            clipBehavior: Clip.antiAlias,
-                            child: const POSProductGrid(),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        // Cart Panel - Right Panel
-                        Expanded(
-                          flex: 32,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF151D2E)
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isDark
-                                    ? Colors.white.withOpacity(0.06)
-                                    : const Color(0xFFE2E8F0),
+                            const SizedBox(width: 16),
+                            // Cart Panel - Right Panel
+                            Expanded(
+                              flex: 32,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: isDark
+                                        ? [
+                                            const Color(0xFF121A2B),
+                                            const Color(0xFF0D1526),
+                                          ]
+                                        : [
+                                            Colors.white,
+                                            const Color(0xFFF7F9FD),
+                                          ],
+                                    begin: Alignment.topRight,
+                                    end: Alignment.bottomLeft,
+                                  ),
+                                  borderRadius: BorderRadius.circular(22),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white.withOpacity(0.08)
+                                        : const Color(0xFFE2E8F0),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isDark
+                                          ? Colors.black.withOpacity(0.45)
+                                          : const Color(0xFF1F2937).withOpacity(0.1),
+                                      blurRadius: 34,
+                                      offset: const Offset(0, 14),
+                                      spreadRadius: -6,
+                                    ),
+                                    BoxShadow(
+                                      color: isDark
+                                          ? Colors.black.withOpacity(0.35)
+                                          : const Color(0xFF1E293B).withOpacity(0.06),
+                                      blurRadius: 18,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: const POSCartPanel(),
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: isDark
-                                      ? Colors.black.withOpacity(0.5)
-                                      : const Color(0xFF64748B).withOpacity(0.1),
-                                  blurRadius: 32,
-                                  offset: const Offset(0, 12),
-                                  spreadRadius: -4,
-                                ),
-                                BoxShadow(
-                                  color: isDark
-                                      ? Colors.black.withOpacity(0.3)
-                                      : const Color(0xFF64748B).withOpacity(0.05),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
                             ),
-                            clipBehavior: Clip.antiAlias,
-                            child: const POSCartPanel(),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -179,11 +203,18 @@ class _POSScreenState extends State<POSScreen>
     final isDark = theme.brightness == Brightness.dark;
     final dateFormat = DateFormat('EEEE, MMMM d');
     final timeFormat = DateFormat('hh:mm:ss a');
+    final currencyFormat = NumberFormat.currency(symbol: '₱', decimalDigits: 2);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF151D2E) : Colors.white,
+        gradient: LinearGradient(
+          colors: isDark
+              ? [const Color(0xFF121A2B), const Color(0xFF0F1828)]
+              : [Colors.white, const Color(0xFFF7FAFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark
@@ -220,99 +251,132 @@ class _POSScreenState extends State<POSScreen>
           const SizedBox(width: 16),
 
           // Store Info
-          Expanded(
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        colorScheme.primary,
-                        colorScheme.primary.withOpacity(0.8),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colorScheme.primary.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      colorScheme.primary,
+                      colorScheme.primary.withOpacity(0.8),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.storefront_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'POS Terminal',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF10B981),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF10B981).withOpacity(0.4),
-                                blurRadius: 6,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Downtown Branch',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: isDark
-                                ? Colors.white60
-                                : const Color(0xFF64748B),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 8),
-                          width: 4,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? Colors.white24
-                                : const Color(0xFFCBD5E1),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        Text(
-                          'Station A1',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: isDark
-                                ? Colors.white60
-                                : const Color(0xFF64748B),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.primary.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-              ],
-            ),
+                child: const Icon(
+                  Icons.storefront_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'POS Terminal',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF10B981).withOpacity(0.4),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Downtown Branch',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: isDark
+                              ? Colors.white60
+                              : const Color(0xFF64748B),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        width: 4,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white24
+                              : const Color(0xFFCBD5E1),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      Text(
+                        'Station A1',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: isDark
+                              ? Colors.white60
+                              : const Color(0xFF64748B),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
+          
+          const Spacer(),
+          
+          // Today's Stats Section
+          Consumer<POSProvider>(
+            builder: (context, posProvider, _) {
+              return Row(
+                children: [
+                  // Total Sales Today
+                  _buildStatCard(
+                    icon: Icons.trending_up_rounded,
+                    label: 'Sales Today',
+                    value: currencyFormat.format(posProvider.todayTotalSales),
+                    color: const Color(0xFF10B981),
+                    isDark: isDark,
+                    theme: theme,
+                    isLoading: posProvider.statsLoading,
+                  ),
+                  const SizedBox(width: 10),
+                  // Total Customers
+                  _buildStatCard(
+                    icon: Icons.people_rounded,
+                    label: 'Customers',
+                    value: posProvider.todayTotalCustomers.toString(),
+                    color: const Color(0xFF8B5CF6),
+                    isDark: isDark,
+                    theme: theme,
+                    isLoading: posProvider.statsLoading,
+                  ),
+                ],
+              );
+            },
+          ),
+          
+          const SizedBox(width: 10),
 
           // Quick Actions
           _buildActionButton(
@@ -448,6 +512,78 @@ class _POSScreenState extends State<POSScreen>
     );
   }
 
+  Widget _buildStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+    required bool isDark,
+    required ThemeData theme,
+    bool isLoading = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark
+            ? color.withOpacity(0.12)
+            : color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withOpacity(0.2),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              size: 16,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                  fontWeight: FontWeight.w500,
+                  fontSize: 11,
+                ),
+              ),
+              isLoading
+                  ? SizedBox(
+                      width: 50,
+                      height: 14,
+                      child: LinearProgressIndicator(
+                        backgroundColor: color.withOpacity(0.2),
+                        valueColor: AlwaysStoppedAnimation(color),
+                      ),
+                    )
+                  : Text(
+                      value,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: color,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildIconButton({
     required IconData icon,
     required VoidCallback onPressed,
@@ -519,6 +655,66 @@ class _POSScreenState extends State<POSScreen>
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBackground(bool isDark, ColorScheme colorScheme) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [const Color(0xFF0A0F1A), const Color(0xFF0F172A)]
+              : [const Color(0xFFEFF4FF), const Color(0xFFF8FBFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -120,
+            left: -40,
+            child: _buildGlowCircle(
+              colorScheme.primary.withOpacity(isDark ? 0.12 : 0.16),
+              240,
+            ),
+          ),
+          Positioned(
+            bottom: -160,
+            right: -60,
+            child: _buildGlowCircle(
+              colorScheme.secondary.withOpacity(isDark ? 0.12 : 0.16),
+              280,
+            ),
+          ),
+          Positioned(
+            top: 120,
+            right: 220,
+            child: _buildGlowCircle(
+              Colors.white.withOpacity(isDark ? 0.05 : 0.4),
+              160,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlowCircle(Color color, double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: size * 0.35,
+            spreadRadius: size * 0.15,
+          ),
+        ],
       ),
     );
   }

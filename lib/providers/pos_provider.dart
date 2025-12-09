@@ -17,6 +17,17 @@ class POSProvider with ChangeNotifier {
   
   // Held orders for later
   List<List<CartItem>> _heldOrders = [];
+  
+  // Today's statistics
+  double _todayTotalSales = 0.0;
+  int _todayTotalCustomers = 0;
+  int _todayOrderCount = 0;
+  bool _statsLoading = false;
+
+  // Constructor - load today's stats
+  POSProvider() {
+    loadTodayStats();
+  }
 
   // Getters
   List<CartItem> get cartItems => _cartItems;
@@ -26,6 +37,12 @@ class POSProvider with ChangeNotifier {
   double get taxPercent => _taxPercent;
   String get orderNotes => _orderNotes;
   List<List<CartItem>> get heldOrders => _heldOrders;
+  
+  // Today's stats getters
+  double get todayTotalSales => _todayTotalSales;
+  int get todayTotalCustomers => _todayTotalCustomers;
+  int get todayOrderCount => _todayOrderCount;
+  bool get statsLoading => _statsLoading;
   
   int get totalItems => _cartItems.fold(0, (sum, item) => sum + item.quantity);
   
@@ -161,6 +178,24 @@ class POSProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Load today's sales statistics
+  Future<void> loadTodayStats() async {
+    _statsLoading = true;
+    notifyListeners();
+    
+    try {
+      final stats = await _salesService.getTodayStats();
+      _todayTotalSales = stats['totalSales'] as double;
+      _todayTotalCustomers = stats['totalCustomers'] as int;
+      _todayOrderCount = stats['orderCount'] as int;
+    } catch (e) {
+      print('Failed to load today stats: $e');
+    } finally {
+      _statsLoading = false;
+      notifyListeners();
+    }
+  }
+
   // Checkout (Async, creates order in DB)
   Future<String> checkout(PaymentMethod method, double amountTendered) async {
     if (_cartItems.isEmpty) {
@@ -203,6 +238,9 @@ class POSProvider with ChangeNotifier {
       
       // Clear cart on success
       clearCart();
+      
+      // Refresh today's stats after successful checkout
+      loadTodayStats();
       
       return orderId;
     } catch (e) {
